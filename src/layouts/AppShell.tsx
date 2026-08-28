@@ -5,8 +5,6 @@ import { useCierreStore } from "../store/CierreStore";
 import "./AppShell.css";
 
 export function AppShell() {
-  const ver = NAV_ITEMS.filter((i) => i.group === "ver");
-  const capturar = NAV_ITEMS.filter((i) => i.group === "capturar");
   const { registros, selectedFecha, setSelectedFecha } = useCierreStore();
 
   return (
@@ -21,17 +19,8 @@ export function AppShell() {
         </div>
 
         <nav>
-          <p className="nav-group">Visualizar</p>
-          {ver.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.to === "/"} className="nav-link">
-              <span className="nav-label">{item.label}</span>
-              <span className="nav-hint">{item.hint}</span>
-            </NavLink>
-          ))}
-
-          <p className="nav-group">Capturar</p>
-          {capturar.map((item) => (
-            <NavLink key={item.to} to={item.to} className="nav-link capture">
+          {NAV_ITEMS.map((item) => (
+            <NavLink key={item.to} to={item.to} end={item.to === "/simulacion"} className="nav-link">
               <span className="nav-label">{item.label}</span>
               <span className="nav-hint">{item.hint}</span>
             </NavLink>
@@ -52,7 +41,7 @@ export function AppShell() {
             transition={{ duration: 0.5 }}
           >
             <p className="top-title">Cierre de Operaciones</p>
-            <p className="top-sub">Resumen del día · Simulación · Cierre · Consolidado · Novedades</p>
+            <p className="top-sub">Simulación · Cierre · Base de datos · Asistencia · más</p>
           </motion.div>
           <div className="top-actions">
             <label className="fecha-select">
