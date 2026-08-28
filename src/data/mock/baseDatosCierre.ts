@@ -1,0 +1,91 @@
+export type RegistroCierre = {
+  id: string;
+  fecha: string;
+  totalBeneficio: number;
+  horaInicio: string;
+  horaFin: string;
+  duracionMin: number;
+  tiempoParadasMin: number;
+  paradaProgramadaMin: number;
+  velocidadLinea: number;
+  horasLaboradas: number;
+  tardanzaInicio: number;
+  productividad: number;
+  velocidadNeta: number;
+  velocidadBruta: number;
+  toleranciaCero: number;
+  pieles: number;
+  observacion: string;
+  mes: string;
+  anio: number;
+};
+
+export const baseDatosCierreSeed: RegistroCierre[] = [
+  {
+    id: "2026-08-19",
+    fecha: "2026-08-19",
+    totalBeneficio: 306,
+    horaInicio: "14:00",
+    horaFin: "20:18",
+    duracionMin: 378,
+    tiempoParadasMin: 61,
+    paradaProgramadaMin: 30,
+    velocidadLinea: 75,
+    horasLaboradas: 6.3,
+    tardanzaInicio: 0,
+    productividad: 72.4,
+    velocidadNeta: 75,
+    velocidadBruta: 68.2,
+    toleranciaCero: 0.0096,
+    pieles: 0.98,
+    observacion: "Cierre estable. Seguimiento lustres clientes prioritarios.",
+    mes: "AGOSTO",
+    anio: 2026,
+  },
+  {
+    id: "2026-08-18",
+    fecha: "2026-08-18",
+    totalBeneficio: 298,
+    horaInicio: "14:05",
+    horaFin: "20:40",
+    duracionMin: 395,
+    tiempoParadasMin: 48,
+    paradaProgramadaMin: 30,
+    velocidadLinea: 74,
+    horasLaboradas: 6.58,
+    tardanzaInicio: 5,
+    productividad: 70.1,
+    velocidadNeta: 73.2,
+    velocidadBruta: 66.8,
+    toleranciaCero: 0.0102,
+    pieles: 0.97,
+    observacion: "Tardanza leve por alistamiento de box.",
+    mes: "AGOSTO",
+    anio: 2026,
+  },
+  {
+    id: "2026-08-15",
+    fecha: "2026-08-15",
+    totalBeneficio: 312,
+    horaInicio: "13:50",
+    horaFin: "20:10",
+    duracionMin: 380,
+    tiempoParadasMin: 35,
+    paradaProgramadaMin: 30,
+    velocidadLinea: 76,
+    horasLaboradas: 6.33,
+    tardanzaInicio: 0,
+    productividad: 74.8,
+    velocidadNeta: 76.1,
+    velocidadBruta: 70.4,
+    toleranciaCero: 0.0088,
+    pieles: 0.99,
+    observacion: "Buen ritmo. Paradas dentro de lo programado.",
+    mes: "AGOSTO",
+    anio: 2026,
+  },
+];
+
+export type NuevoRegistroInput = Omit<RegistroCierre, "id" | "mes" | "anio" | "duracionMin"> & {
+  duracionMin?: number;
+};

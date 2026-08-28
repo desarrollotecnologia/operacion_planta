@@ -1,0 +1,73 @@
+:root {
+  /* Paleta corporativa azul (suministrada) */
+  --blue-cyan-100: #b8e4f0;
+  --blue-cyan-300: #5bb8d4;
+  --blue-cyan-500: #2a9bb8;
+  --blue-cyan-700: #1a7a96;
+  --blue-cyan-900: #063d52;
+
+  --blue-royal-100: #7eb8f5;
+  --blue-royal-300: #4a90e8;
+  --blue-royal-500: #2b6fd6;
+  --blue-royal-700: #1e4fb8;
+  --blue-royal-900: #163a8c;
+  --blue-royal-950: #0c1f4a;
+
+  --blue-indigo-200: #a8b8e8;
+  --blue-indigo-400: #6b7fd4;
+  --blue-indigo-600: #4a5fc0;
+  --blue-indigo-800: #2a3080;
+
+  --blue-steel-100: #a8b8c8;
+  --blue-steel-300: #7a8fa3;
+  --blue-steel-500: #5a7088;
+  --blue-steel-700: #3f5568;
+  --blue-steel-900: #121820;
+
+  --brand-950: var(--blue-royal-950);
+  --brand-900: var(--blue-royal-900);
+  --brand-800: var(--blue-royal-700);
+  --brand-700: var(--blue-royal-500);
+  --brand-600: var(--blue-royal-300);
+  --brand-100: #d6e8fa;
+  --brand-50: #eef5fc;
+
+  --ink: #121820;
+  --ink-soft: #3f5568;
+  --muted: #5a7088;
+  --line: #d5e0ea;
+  --line-strong: #a8b8c8;
+
+  --surface: #f2f6fa;
+  --surface-elevated: #ffffff;
+  --surface-tint: #e8f1f8;
+
+  --accent: var(--blue-cyan-500);
+  --accent-soft: #e3f5fa;
+  --danger: #9f1239;
+  --danger-soft: #ffe4e6;
+  --ok: var(--blue-cyan-700);
+  --ok-soft: #dff3f8;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+
+  --chart-1: #4a90e8;
+  --chart-2: #2a9bb8;
+  --chart-3: #6b7fd4;
+  --chart-4: #1e4fb8;
+  --chart-5: #5a7088;
+  --chart-6: #7eb8f5;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+
+  --shadow-sm: 0 1px 0 rgba(12, 31, 74, 0.06);
+  --shadow-md: 0 12px 40px rgba(12, 31, 74, 0.1);
+
+  --font-ui: "Outfit", system-ui, sans-serif;
+  --font-display: "Source Serif 4", Georgia, serif;
+
+  --nav-width: 268px;
+  --header-h: 64px;
+}

@@ -1,0 +1,117 @@
+.resumen-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
+  margin-bottom: 1.1rem;
+}
+
+.resumen-grid-wide {
+  grid-template-columns: 1fr;
+}
+
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 260px;
+}
+
+.chart-wrap-pie {
+  display: grid;
+  place-items: center;
+}
+
+.pie-center {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.pie-center strong {
+  display: block;
+  font-size: 1.7rem;
+  color: var(--brand-950);
+  line-height: 1;
+}
+
+.pie-center span {
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.chart-tooltip {
+  background: var(--brand-950);
+  color: white;
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.8rem;
+  box-shadow: var(--shadow-md);
+}
+
+.chart-tooltip-label {
+  opacity: 0.75;
+  margin-bottom: 0.25rem;
+}
+
+.legend-text {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+.signal-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.signal-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 0.95rem;
+  background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+}
+
+.signal-card.warn {
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
+  border-color: color-mix(in srgb, var(--warn) 28%, var(--line));
+}
+
+.signal-kicker {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.signal-value {
+  margin-top: 0.35rem;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--brand-950);
+  letter-spacing: -0.03em;
+}
+
+.signal-value span {
+  font-size: 0.85rem;
+  margin-left: 0.2rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.signal-hint {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 1100px) {
+  .resumen-grid,
+  .signal-grid {
+    grid-template-columns: 1fr;
+  }
+}
