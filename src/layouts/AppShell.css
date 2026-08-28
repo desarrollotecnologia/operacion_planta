@@ -135,6 +135,33 @@
   margin-top: 0.1rem;
 }
 
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fecha-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fecha-select select {
+  min-width: 9.5rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--brand-950);
+  font-size: 0.85rem;
+}
+
 .top-pill {
   font-size: 0.75rem;
   font-weight: 600;

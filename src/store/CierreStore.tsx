@@ -33,7 +33,7 @@ export function CierreStoreProvider({ children }: { children: ReactNode }) {
   const recargar = useCallback(async () => {
     setCargando(true);
     try {
-      const datos = await api.cierres();
+      const datos = await api.cierres({ anio: 2026, hasta: "2026-08-27" });
       setRegistros(datos);
       setError(null);
       // Al primer cargue selecciona el dia mas reciente.

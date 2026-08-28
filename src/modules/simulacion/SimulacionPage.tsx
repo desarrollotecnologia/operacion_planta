@@ -1,16 +1,26 @@
 import { MetricCard, PageHeader, Panel } from "../../components/ui";
-import { simulacionMock } from "../../data/mock/simulacion";
+import { useCierreStore } from "../../store/CierreStore";
+import { useCierreVistas } from "../../hooks/useCierreVistas";
 import "../../components/ui.css";
 
 export function SimulacionPage() {
-  const s = simulacionMock;
+  const { selectedFecha } = useCierreStore();
+  const { simulacion: s, cargando, error } = useCierreVistas(selectedFecha);
+
+  if (cargando && !s) {
+    return <p className="note-block">Cargando simulación…</p>;
+  }
+
+  if (error || !s) {
+    return <p className="note-block">{error ?? "No hay datos de simulación para la fecha seleccionada."}</p>;
+  }
 
   return (
     <div>
       <PageHeader
         eyebrow="Módulo 1 · Visualizar"
         title="Simulación de velocidad"
-        description="Planifica reses, velocidad bruta y tiempos de parada/vaciado para estimar duración efectiva y ritmo de noqueo."
+        description={`Parámetros del cierre del ${selectedFecha} (hoja SIMULACION / Base de datos).`}
       />
 
       <div className="metrics-grid">
@@ -38,7 +48,7 @@ export function SimulacionPage() {
       </div>
 
       <div className="stack-2">
-        <Panel title="Parámetros de simulación" subtitle="Entradas editables (próximo: formulario vivo)" delay={0.18}>
+        <Panel title="Parámetros de simulación" subtitle="Derivados del cierre diario" delay={0.18}>
           <table className="data-table">
             <tbody>
               <tr>
@@ -73,23 +83,6 @@ export function SimulacionPage() {
               </tr>
             </tbody>
           </table>
-        </Panel>
-
-        <Panel title="Lógica (como en Sheets)" subtitle="Fórmulas que migraremos al backend" delay={0.24}>
-          <div className="note-block">
-            <p>
-              <strong>Duración deseada</strong> = Reses ÷ Velocidad bruta
-            </p>
-            <p style={{ marginTop: "0.55rem" }}>
-              <strong>Duración efectiva</strong> = Deseada − Parada programada
-            </p>
-            <p style={{ marginTop: "0.55rem" }}>
-              <strong>Velocidad neta</strong> = Reses ÷ Duración efectiva
-            </p>
-            <p style={{ marginTop: "0.55rem" }}>
-              <strong>Noqueo</strong> = Efectiva − Vaciado línea
-            </p>
-          </div>
         </Panel>
       </div>
     </div>

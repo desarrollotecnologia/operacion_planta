@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Bar,
@@ -14,9 +15,9 @@ import {
   YAxis,
 } from "recharts";
 import { MetricCard, PageHeader, Panel, formatDate, pct } from "../../components/ui";
-import { cierreProcesoMock } from "../../data/mock/cierreProceso";
-import { consolidado2026Mock } from "../../data/mock/consolidado";
-import { novedadesMock } from "../../data/mock/novedades";
+import { useCierreVistas } from "../../hooks/useCierreVistas";
+import { api } from "../../lib/api";
+import type { ConsolidadoRow } from "../../data/types";
 import { useCierreStore } from "../../store/CierreStore";
 import "../../components/ui.css";
 import "./ResumenDia.css";
@@ -53,28 +54,52 @@ function TooltipBox({ active, payload, label }: {
 }
 
 export function HomePage() {
-  const { registros } = useCierreStore();
-  const c = cierreProcesoMock;
-  const n = novedadesMock;
+  const { registros, selectedFecha } = useCierreStore();
+  const { cierreProceso: c, novedades: n, cargando } = useCierreVistas(selectedFecha);
+  const [consolidado, setConsolidado] = useState<ConsolidadoRow[]>([]);
 
-  const personalPie = n.resumen.map((r) => ({
-    name: r.criterio,
-    value: r.cantidad,
-  }));
+  useEffect(() => {
+    void api.consolidado({ anio: 2026, mes: "AGOSTO" }).then(setConsolidado).catch(() => setConsolidado([]));
+  }, []);
 
-  const beneficioBars = [...consolidado2026Mock]
-    .reverse()
-    .map((r) => ({
-      dia: formatDate(r.fecha).slice(0, 5),
-      reses: r.totalBeneficio,
-      personal: r.personalAsignado,
-    }));
+  const personalPie = useMemo(
+    () => (n?.resumen ?? []).map((r) => ({ name: r.criterio, value: r.cantidad })),
+    [n],
+  );
+
+  const beneficioBars = useMemo(
+    () =>
+      [...consolidado]
+        .sort((a, b) => a.fecha.localeCompare(b.fecha))
+        .slice(-10)
+        .map((r) => ({
+          dia: formatDate(r.fecha).slice(0, 5),
+          reses: r.totalBeneficio,
+        })),
+    [consolidado],
+  );
+
+  if (cargando && !c) {
+    return <p className="note-block">Cargando resumen del día…</p>;
+  }
+
+  if (!c || !n) {
+    return (
+      <p className="note-block">
+        No hay datos para el resumen. Importa los Excel con npm run import:datos en el servidor.
+      </p>
+    );
+  }
 
   const realVsMeta = [
     { indicador: "OEE día", real: Math.round(c.oeeDia * 100), meta: 80 },
     { indicador: "Productividad", real: Math.round(c.productividad), meta: 75 },
     { indicador: "Vel. neta", real: Math.round(c.velocidadNeta), meta: 75 },
-    { indicador: "Laborando %", real: Math.round((n.laborando / n.presupuestados) * 100), meta: 85 },
+    {
+      indicador: "Laborando %",
+      real: n.presupuestados ? Math.round((n.laborando / n.presupuestados) * 100) : 0,
+      meta: 85,
+    },
   ];
 
   const operatividadCompare = c.operatividadLinea
@@ -89,6 +114,8 @@ export function HomePage() {
     c.horasLaboradas > 0
       ? Math.max(0, ((c.horasLaboradas * 60 - c.tiemposImproductivosMin) / (c.horasLaboradas * 60)) * 100)
       : 0;
+
+  const incapacidades = n.resumen.find((r) => r.criterio === "INCAPACIDAD")?.cantidad ?? 0;
 
   return (
     <div className="resumen-dia">
@@ -121,7 +148,7 @@ export function HomePage() {
         <MetricCard
           label="Personal laborando"
           value={`${n.laborando}/${n.presupuestados}`}
-          hint={pct(n.laborando / n.presupuestados)}
+          hint={n.presupuestados ? pct(n.laborando / n.presupuestados) : "—"}
           tone="ok"
           delay={0.12}
         />
@@ -134,11 +161,7 @@ export function HomePage() {
       </div>
 
       <div className="resumen-grid">
-        <Panel
-          title="Composición del personal"
-          subtitle="¿Quién está disponible hoy?"
-          delay={0.18}
-        >
+        <Panel title="Composición del personal" subtitle="¿Quién está disponible hoy?" delay={0.18}>
           <div className="chart-wrap chart-wrap-pie">
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
@@ -171,11 +194,7 @@ export function HomePage() {
           </div>
         </Panel>
 
-        <Panel
-          title="Beneficio últimos días"
-          subtitle="Reses beneficiadas (muestra agosto 2026)"
-          delay={0.22}
-        >
+        <Panel title="Beneficio últimos días" subtitle="Agosto 2026" delay={0.22}>
           <div className="chart-wrap">
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={beneficioBars} barSize={28}>
@@ -191,11 +210,7 @@ export function HomePage() {
       </div>
 
       <div className="resumen-grid">
-        <Panel
-          title="Real vs meta"
-          subtitle="Lectura inmediata de cumplimiento"
-          delay={0.26}
-        >
+        <Panel title="Real vs meta" subtitle="Lectura inmediata de cumplimiento" delay={0.26}>
           <div className="chart-wrap">
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={realVsMeta} layout="vertical" margin={{ left: 12, right: 12 }}>
@@ -218,11 +233,7 @@ export function HomePage() {
           </div>
         </Panel>
 
-        <Panel
-          title="Plantilla vs día"
-          subtitle="Operatividad de línea (import Novedades)"
-          delay={0.3}
-        >
+        <Panel title="Plantilla vs día" subtitle="Operatividad de línea" delay={0.3}>
           <div className="chart-wrap">
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={operatividadCompare} barGap={4}>
@@ -245,7 +256,7 @@ export function HomePage() {
             <motion.div className="signal-card" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.36 }}>
               <p className="signal-kicker">Productividad</p>
               <p className="signal-value">{c.productividad.toFixed(1)}</p>
-              <p className="signal-hint">Velocidad línea {c.velocidadLinea} r/h</p>
+              <p className="signal-hint">Velocidad línea {c.velocidadLinea.toFixed(1)} r/h</p>
             </motion.div>
             <motion.div className="signal-card" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
               <p className="signal-kicker">Paradas</p>
@@ -254,18 +265,20 @@ export function HomePage() {
             </motion.div>
             <motion.div className="signal-card warn" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.44 }}>
               <p className="signal-kicker">Incapacidades</p>
-              <p className="signal-value">4</p>
+              <p className="signal-value">{incapacidades}</p>
               <p className="signal-hint">Impacto en disponibilidad</p>
             </motion.div>
             <motion.div className="signal-card" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.48 }}>
               <p className="signal-kicker">Registros base</p>
               <p className="signal-value">{registros.length}</p>
-              <p className="signal-hint">Capturados en prototipo</p>
+              <p className="signal-hint">Cierres en base de datos</p>
             </motion.div>
           </div>
-          <p className="note-block" style={{ marginTop: "1rem" }}>
-            <strong>Maquinaria:</strong> {c.fallosMaquinaria}
-          </p>
+          {c.fallosMaquinaria ? (
+            <p className="note-block" style={{ marginTop: "1rem" }}>
+              <strong>Maquinaria:</strong> {c.fallosMaquinaria}
+            </p>
+          ) : null}
         </Panel>
       </div>
     </div>

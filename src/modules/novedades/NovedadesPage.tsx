@@ -1,5 +1,6 @@
 import { Badge, MetricCard, PageHeader, Panel, formatDate, pct } from "../../components/ui";
-import { novedadesMock } from "../../data/mock/novedades";
+import { useCierreVistas } from "../../hooks/useCierreVistas";
+import { useCierreStore } from "../../store/CierreStore";
 import "../../components/ui.css";
 
 function difClass(n: number) {
@@ -8,14 +9,23 @@ function difClass(n: number) {
 }
 
 export function NovedadesPage() {
-  const n = novedadesMock;
+  const { selectedFecha } = useCierreStore();
+  const { novedades: n, cargando, error } = useCierreVistas(selectedFecha);
+
+  if (cargando && !n) {
+    return <p className="note-block">Cargando novedades…</p>;
+  }
+
+  if (error || !n) {
+    return <p className="note-block">{error ?? "No hay novedades para la fecha seleccionada."}</p>;
+  }
 
   return (
     <div>
       <PageHeader
         eyebrow="Desde archivo Novedades · Visualizar"
         title="Novedades de personal"
-        description="Operatividad de línea alineada a la fecha del cierre. Aquí se ve el resumen; la matriz persona×día se conectará después."
+        description="Operatividad de línea alineada a la fecha del cierre."
       />
 
       <div className="metrics-grid">
@@ -24,15 +34,10 @@ export function NovedadesPage() {
           label="Laborando"
           value={String(n.laborando)}
           tone="ok"
-          hint={`${pct(n.laborando / n.presupuestados)}`}
+          hint={n.presupuestados ? `${pct(n.laborando / n.presupuestados)}` : undefined}
           delay={0.1}
         />
-        <MetricCard
-          label="Ausentismo"
-          value={String(n.ausentismo)}
-          tone="warn"
-          delay={0.15}
-        />
+        <MetricCard label="Ausentismo" value={String(n.ausentismo)} tone="warn" delay={0.15} />
         <MetricCard label="Presupuestados" value={String(n.presupuestados)} delay={0.2} />
       </div>
 
@@ -68,28 +73,30 @@ export function NovedadesPage() {
           </table>
         </Panel>
 
-        <Panel title="Operatividad vs plantilla" delay={0.24}>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Criterio</th>
-                <th>Real</th>
-                <th>%</th>
-                <th>Dif</th>
-              </tr>
-            </thead>
-            <tbody>
-              {n.operatividad.map((r) => (
-                <tr key={r.criterio}>
-                  <td>{r.criterio}</td>
-                  <td>{r.real}</td>
-                  <td>{pct(r.pct)}</td>
-                  <td className={difClass(r.dif)}>{pct(r.dif)}</td>
+        {n.operatividad.length > 0 && (
+          <Panel title="Operatividad vs plantilla" delay={0.24}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Criterio</th>
+                  <th>Real</th>
+                  <th>%</th>
+                  <th>Dif</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </Panel>
+              </thead>
+              <tbody>
+                {n.operatividad.map((r) => (
+                  <tr key={r.criterio}>
+                    <td>{r.criterio}</td>
+                    <td>{r.real}</td>
+                    <td>{pct(r.pct)}</td>
+                    <td className={difClass(r.dif)}>{pct(r.dif)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Panel>
+        )}
       </div>
     </div>
   );

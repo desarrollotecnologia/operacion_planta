@@ -7,10 +7,14 @@
 import type {
   AsistenciaDia,
   Catalogos,
+  CierreProcesoData,
+  ConsolidadoRow,
+  NovedadesDiaData,
   NuevoOperarioInput,
   NuevoRegistroInput,
   Operario,
   RegistroCierre,
+  SimulacionData,
 } from "../data/types";
 
 const BASE = import.meta.env.VITE_API_URL ?? "/api";
@@ -77,6 +81,17 @@ export const api = {
 
   cierres: (params: { anio?: number; mes?: string; desde?: string; hasta?: string } = {}) =>
     request<RegistroCierre[]>(`/cierres${qs(params)}`),
+
+  ultimaFechaCierre: () => request<{ fecha: string }>("/cierres/ultimo"),
+
+  consolidado: (params: { anio?: number; mes?: string } = {}) =>
+    request<ConsolidadoRow[]>(`/cierres/consolidado${qs(params)}`),
+
+  simulacion: (fecha: string) => request<SimulacionData>(`/cierres/${fecha}/simulacion`),
+
+  cierreProceso: (fecha: string) => request<CierreProcesoData>(`/cierres/${fecha}/cierre-proceso`),
+
+  novedadesDia: (fecha: string) => request<NovedadesDiaData>(`/cierres/${fecha}/novedades`),
 
   guardarCierre: (input: NuevoRegistroInput) =>
     request<RegistroCierre>("/cierres", {

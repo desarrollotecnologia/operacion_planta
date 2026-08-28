@@ -1,11 +1,13 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NAV_ITEMS } from "../data/nav";
+import { useCierreStore } from "../store/CierreStore";
 import "./AppShell.css";
 
 export function AppShell() {
   const ver = NAV_ITEMS.filter((i) => i.group === "ver");
   const capturar = NAV_ITEMS.filter((i) => i.group === "capturar");
+  const { registros, selectedFecha, setSelectedFecha } = useCierreStore();
 
   return (
     <div className="shell">
@@ -38,7 +40,7 @@ export function AppShell() {
 
         <div className="nav-foot">
           <p>Alcance 2026+</p>
-          <p className="muted">Mock local · BD en servidor después</p>
+          <p className="muted">{registros.length} cierres en base</p>
         </div>
       </aside>
 
@@ -52,7 +54,22 @@ export function AppShell() {
             <p className="top-title">Cierre de Operaciones</p>
             <p className="top-sub">Resumen del día · Simulación · Cierre · Consolidado · Novedades</p>
           </motion.div>
-          <div className="top-pill">Prototipo visual</div>
+          <div className="top-actions">
+            <label className="fecha-select">
+              <span>Fecha cierre</span>
+              <select
+                value={selectedFecha}
+                onChange={(e) => setSelectedFecha(e.target.value)}
+                disabled={!registros.length}
+              >
+                {registros.map((r) => (
+                  <option key={r.fecha} value={r.fecha}>
+                    {r.fecha}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </header>
         <main className="shell-content">
           <Outlet />

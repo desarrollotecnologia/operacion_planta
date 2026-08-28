@@ -1,5 +1,11 @@
 import { Router } from 'express';
 import { query, queryOne } from '../db.mjs';
+import {
+  getCierreProceso,
+  getNovedades,
+  getSimulacion,
+  getUltimaFecha,
+} from '../build-cierre-vista.mjs';
 import { cierreFromRow, consolidadoFromRow, toSqlTime } from '../mappers.mjs';
 import { asDate, asInt, asNumber, asText, asTime, notFound } from '../validate.mjs';
 
@@ -118,6 +124,33 @@ cierresRouter.get('/consolidado', async (req, res) => {
     params,
   );
   res.json(rows.map(consolidadoFromRow));
+});
+
+cierresRouter.get('/ultimo', async (_req, res) => {
+  const fecha = await getUltimaFecha();
+  if (!fecha) throw notFound('No hay cierres registrados.');
+  res.json({ fecha });
+});
+
+cierresRouter.get('/:fecha/simulacion', async (req, res) => {
+  const fecha = asDate(req.params.fecha, 'fecha');
+  const data = await getSimulacion(fecha);
+  if (!data) throw notFound(`No hay simulacion para ${fecha}.`);
+  res.json(data);
+});
+
+cierresRouter.get('/:fecha/cierre-proceso', async (req, res) => {
+  const fecha = asDate(req.params.fecha, 'fecha');
+  const data = await getCierreProceso(fecha);
+  if (!data) throw notFound(`No hay cierre de proceso para ${fecha}.`);
+  res.json(data);
+});
+
+cierresRouter.get('/:fecha/novedades', async (req, res) => {
+  const fecha = asDate(req.params.fecha, 'fecha');
+  const data = await getNovedades(fecha);
+  if (!data) throw notFound(`No hay novedades para ${fecha}.`);
+  res.json(data);
 });
 
 cierresRouter.get('/:fecha', async (req, res) => {
