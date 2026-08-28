@@ -22,7 +22,9 @@ export function toSqlTime(value) {
   if (value == null || value === '') return null;
 
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    if (value.getFullYear() === 1900 && value.getMonth() === 0 && value.getDate() === 1) {
+    // Excel almacena las horas sueltas como fracciones sobre su epoca (1899-12-30),
+    // y las que pasan de medianoche caen en el dia siguiente de esa epoca.
+    if (value.getFullYear() <= 1900) {
       return `${String(value.getHours()).padStart(2, '0')}:${String(value.getMinutes()).padStart(2, '0')}:00`;
     }
     return null;

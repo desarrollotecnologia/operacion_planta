@@ -84,7 +84,7 @@ function parseBaseRow(row) {
 
   let horaFin = toSqlTime(row[4]);
   const duracionMin = num(row[5]);
-  if (!horaFin || (row[4] instanceof Date && row[4].getFullYear() === 1900)) {
+  if (!horaFin) {
     horaFin = addMinutesToTime(horaInicio, duracionMin) ?? horaInicio;
   }
 

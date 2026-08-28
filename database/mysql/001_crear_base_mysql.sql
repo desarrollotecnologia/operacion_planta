@@ -99,11 +99,16 @@ CREATE TABLE IF NOT EXISTS cierre_diario (
   total_beneficio       INT          NOT NULL,
   hora_inicio           TIME         NOT NULL,
   hora_fin              TIME         NOT NULL,
+  -- El turno puede terminar despues de medianoche (14:00 -> 01:34), por eso se
+  -- suma un dia antes del modulo en lugar de restar horas directamente.
   duracion_min          INT GENERATED ALWAYS AS (
-    TIMESTAMPDIFF(
-      MINUTE,
-      CONCAT('2000-01-01 ', hora_inicio),
-      CONCAT('2000-01-01 ', hora_fin)
+    MOD(
+      TIMESTAMPDIFF(
+        MINUTE,
+        CONCAT('2000-01-01 ', hora_inicio),
+        CONCAT('2000-01-01 ', hora_fin)
+      ) + 1440,
+      1440
     )
   ) STORED,
   tiempo_paradas_min    INT          NOT NULL DEFAULT 0,
