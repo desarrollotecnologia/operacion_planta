@@ -111,7 +111,9 @@ $ok = $false
 foreach ($i in 1..15) {
     Start-Sleep -Seconds 1
     try {
-        $r = Invoke-WebRequest "http://localhost:$Port/health" -UseBasicParsing -TimeoutSec 3
+        # /api/health confirma ademas la conexion con MySQL; /health lo atenderia
+        # el fallback del SPA devolviendo la pagina y daria un falso positivo.
+        $r = Invoke-WebRequest "http://localhost:$Port/api/health" -UseBasicParsing -TimeoutSec 3
         if ($r.StatusCode -eq 200) { $ok = $true; break }
     }
     catch { }
