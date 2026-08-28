@@ -7,10 +7,16 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server/index.mjs",
+    "deploy": "npm run build && npm start",
+    "seed": "node server/seed.mjs"
   },
   "dependencies": {
+    "compression": "^1.8.1",
+    "express": "^5.2.1",
     "framer-motion": "^13.1.1",
+    "mysql2": "^3.24.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2",

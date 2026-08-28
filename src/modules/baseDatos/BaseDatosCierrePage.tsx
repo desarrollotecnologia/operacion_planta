@@ -1,6 +1,6 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { MetricCard, PageHeader, Panel, formatDate } from "../../components/ui";
-import type { NuevoRegistroInput } from "../../data/mock/baseDatosCierre";
+import type { NuevoRegistroInput } from "../../data/types";
 import { useCierreStore } from "../../store/CierreStore";
 import "../../components/ui.css";
 
@@ -23,25 +23,33 @@ const empty: NuevoRegistroInput = {
 };
 
 export function BaseDatosCierrePage() {
-  const { registros, upsertRegistro, selectedFecha, setSelectedFecha } = useCierreStore();
+  const { registros, upsertRegistro, selectedFecha, setSelectedFecha, cargando, guardando, error } =
+    useCierreStore();
   const selected = useMemo(
-    () => registros.find((r) => r.fecha === selectedFecha) ?? registros[0],
+    () => registros.find((r) => r.fecha === selectedFecha) ?? registros[0] ?? null,
     [registros, selectedFecha],
   );
-  const [form, setForm] = useState<NuevoRegistroInput>({ ...empty, ...selected });
+  const [form, setForm] = useState<NuevoRegistroInput>(empty);
   const [savedFlash, setSavedFlash] = useState(false);
+
+  // Los registros llegan de la API despues del primer render.
+  useEffect(() => {
+    const r = registros.find((x) => x.fecha === selectedFecha);
+    if (r) setForm({ ...empty, ...r });
+  }, [selectedFecha, registros]);
 
   function loadRegistro(fecha: string) {
     const r = registros.find((x) => x.fecha === fecha);
     if (!r) return;
     setSelectedFecha(fecha);
-    setForm({ ...r });
+    setForm({ ...empty, ...r });
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!form.fecha) return;
-    upsertRegistro(form);
+    const guardado = await upsertRegistro(form);
+    if (!guardado) return;
     setSavedFlash(true);
     window.setTimeout(() => setSavedFlash(false), 1800);
   }
@@ -51,27 +59,29 @@ export function BaseDatosCierrePage() {
       <PageHeader
         eyebrow="Módulo 5 · Capturar"
         title="Base de datos cierre"
-        description="Esta es la hoja que manda: al guardar un día, el resto de vistas se actualizará cuando conectemos reglas/backend. Hoy persiste en memoria del prototipo."
+        description="Esta es la hoja que manda: al guardar un día se escribe en la tabla cierre_diario de MySQL y el resto de vistas lee de ahí."
       />
 
+      {error && <p className="alert-error">{error}</p>}
+
       <div className="metrics-grid">
-        <MetricCard label="Registros" value={String(registros.length)} delay={0.05} />
+        <MetricCard label="Registros" value={cargando ? "…" : String(registros.length)} delay={0.05} />
         <MetricCard
           label="Seleccionado"
-          value={formatDate(selected.fecha)}
+          value={selected ? formatDate(selected.fecha) : "—"}
           tone="accent"
           delay={0.1}
         />
         <MetricCard
           label="Beneficio"
-          value={String(selected.totalBeneficio)}
+          value={selected ? String(selected.totalBeneficio) : "—"}
           delay={0.15}
         />
         <MetricCard
           label="Estado"
-          value={savedFlash ? "Guardado" : "Listo"}
+          value={cargando ? "Cargando" : guardando ? "Guardando" : savedFlash ? "Guardado" : "Listo"}
           tone={savedFlash ? "ok" : "default"}
-          hint="Sin BD aún · local"
+          hint="MySQL · cierre_diario"
           delay={0.2}
         />
       </div>
@@ -185,8 +195,8 @@ export function BaseDatosCierrePage() {
               </div>
             </div>
             <div className="form-actions">
-              <button className="btn btn-primary" type="submit">
-                Guardar día
+              <button className="btn btn-primary" type="submit" disabled={guardando}>
+                {guardando ? "Guardando…" : "Guardar día"}
               </button>
               <button
                 className="btn btn-ghost"
@@ -199,7 +209,7 @@ export function BaseDatosCierrePage() {
           </form>
         </Panel>
 
-        <Panel title="Histórico en memoria" subtitle="Click para editar" delay={0.24}>
+        <Panel title="Histórico" subtitle="Click para editar · datos de MySQL" delay={0.24}>
           <table className="data-table">
             <thead>
               <tr>
@@ -210,6 +220,13 @@ export function BaseDatosCierrePage() {
               </tr>
             </thead>
             <tbody>
+              {!cargando && registros.length === 0 && (
+                <tr>
+                  <td colSpan={4} style={{ color: "var(--muted)" }}>
+                    Sin registros todavía. Guarda un día para empezar.
+                  </td>
+                </tr>
+              )}
               {registros.map((r) => (
                 <tr
                   key={r.id}
@@ -230,7 +247,8 @@ export function BaseDatosCierrePage() {
             </tbody>
           </table>
           <p className="note-block" style={{ marginTop: "0.9rem" }}>
-            <strong>Siguiente:</strong> API + PostgreSQL en el servidor. Este formulario ya define el contrato de captura.
+            Cada guardado hace <strong>upsert</strong> por fecha en <strong>cierre_diario</strong>:
+            volver a guardar el mismo día corrige el registro en vez de duplicarlo.
           </p>
         </Panel>
       </div>

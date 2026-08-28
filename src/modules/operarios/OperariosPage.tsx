@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { MetricCard, PageHeader, Panel } from "../../components/ui";
-import type { NuevoOperarioInput } from "../../data/mock/operarios";
-import { ESTADOS_NOVEDAD } from "../../data/mock/operarios";
+import type { NuevoOperarioInput } from "../../data/types";
 import { usePersonalStore } from "../../store/PersonalStore";
 import "../../components/ui.css";
 
@@ -16,18 +15,25 @@ const empty: NuevoOperarioInput = {
 };
 
 export function OperariosPage() {
-  const { operarios, crearOperario } = usePersonalStore();
+  const { operarios, crearOperario, estados, cargando, error } = usePersonalStore();
   const [form, setForm] = useState(empty);
   const [saved, setSaved] = useState(false);
+  const [guardando, setGuardando] = useState(false);
   const activos = operarios.filter((o) => o.activo).length;
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!form.puesto || !form.nombreCompleto) return;
-    const nextItem =
-      form.itemOrden ||
-      Math.max(0, ...operarios.map((o) => o.itemOrden)) + 1;
-    crearOperario({ ...form, itemOrden: nextItem });
+
+    setGuardando(true);
+    // itemOrden 0 significa "auto": el backend asigna el siguiente del area.
+    const creado = await crearOperario({
+      ...form,
+      itemOrden: form.itemOrden || undefined,
+    });
+    setGuardando(false);
+    if (!creado) return;
+
     setForm(empty);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1500);
@@ -41,19 +47,21 @@ export function OperariosPage() {
         description="Reemplaza el Excel de novedades: aquí se crean y administran los operarios de línea y PCCOM."
       />
 
+      {error && <p className="alert-error">{error}</p>}
+
       <div className="metrics-grid">
-        <MetricCard label="Total registrados" value={String(operarios.length)} delay={0.05} />
-        <MetricCard label="Activos" value={String(activos)} tone="ok" delay={0.1} />
         <MetricCard
-          label="Estados disponibles"
-          value={String(ESTADOS_NOVEDAD.length)}
-          delay={0.15}
+          label="Total registrados"
+          value={cargando ? "…" : String(operarios.length)}
+          delay={0.05}
         />
+        <MetricCard label="Activos" value={String(activos)} tone="ok" delay={0.1} />
+        <MetricCard label="Estados disponibles" value={String(estados.length)} delay={0.15} />
         <MetricCard
           label="Estado"
-          value={saved ? "Guardado" : "Listo"}
+          value={cargando ? "Cargando" : guardando ? "Guardando" : saved ? "Guardado" : "Listo"}
           tone={saved ? "ok" : "default"}
-          hint="Persistencia local · luego BD 205"
+          hint="MySQL · operario"
           delay={0.2}
         />
       </div>
@@ -133,8 +141,8 @@ export function OperariosPage() {
               </div>
             </div>
             <div className="form-actions">
-              <button className="btn btn-primary" type="submit">
-                Crear operario
+              <button className="btn btn-primary" type="submit" disabled={guardando}>
+                {guardando ? "Creando…" : "Crear operario"}
               </button>
             </div>
           </form>

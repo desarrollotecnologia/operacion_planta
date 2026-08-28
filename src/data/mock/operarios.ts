@@ -1,20 +1,6 @@
-export type Operario = {
-  id: string;
-  area: "LINEA" | "PCCOM";
-  itemOrden: number;
-  puesto: string;
-  nombreCompleto: string;
-  nombreCorto: string;
-  documento?: string;
-  activo: boolean;
-  fechaIngreso?: string;
-};
+import type { AsistenciaDia, EstadoNovedad, Operario } from "../types";
 
-export type EstadoNovedad = {
-  codigo: string;
-  nombre: string;
-  esAusentismo: boolean;
-};
+export type { AsistenciaDia, EstadoNovedad, NuevoOperarioInput, Operario } from "../types";
 
 export const ESTADOS_NOVEDAD: EstadoNovedad[] = [
   { codigo: "LABORANDO", nombre: "Laborando", esAusentismo: false },
@@ -32,12 +18,6 @@ export const ESTADOS_NOVEDAD: EstadoNovedad[] = [
   { codigo: "LICENCIA_NR", nombre: "Licencia no remunerada", esAusentismo: true },
   { codigo: "PERMISO_REMUNERADO", nombre: "Permiso remunerado", esAusentismo: true },
 ];
-
-export type AsistenciaDia = {
-  operarioId: string;
-  fecha: string;
-  estadoCodigo: string;
-};
 
 export const operariosSeed: Operario[] = [
   { id: "op-1", area: "LINEA", itemOrden: 1, puesto: "AFANADOR", nombreCompleto: "PINEDA NELSON", nombreCorto: "AFANADOR NELSON", activo: true },
@@ -62,7 +42,3 @@ export const asistenciaSeed: AsistenciaDia[] = [
   { operarioId: "op-10", fecha: "2026-08-19", estadoCodigo: "VACACIONES" },
   { operarioId: "op-12", fecha: "2026-08-19", estadoCodigo: "INCAPACIDAD" },
 ];
-
-export type NuevoOperarioInput = Omit<Operario, "id" | "nombreCorto"> & {
-  nombreCorto?: string;
-};

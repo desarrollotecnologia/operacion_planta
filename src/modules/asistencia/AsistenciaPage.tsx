@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { Badge, MetricCard, PageHeader, Panel, formatDate, pct } from "../../components/ui";
-import { ESTADOS_NOVEDAD } from "../../data/mock/operarios";
+import type { Area } from "../../data/types";
 import { usePersonalStore } from "../../store/PersonalStore";
 import "../../components/ui.css";
 
 export function AsistenciaPage() {
-  const { operarios, guardarAsistencia, getAsistencia, getResumenDia } = usePersonalStore();
-  const [fecha, setFecha] = useState("2026-08-19");
-  const [area, setArea] = useState<"LINEA" | "PCCOM">("LINEA");
+  const { operarios, guardarAsistencia, getAsistencia, getResumenDia, estados, cargando, error } =
+    usePersonalStore();
+  const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
+  const [area, setArea] = useState<Area>("LINEA");
 
   const ops = useMemo(
     () => operarios.filter((o) => o.activo && o.area === area),
@@ -43,9 +44,11 @@ export function AsistenciaPage() {
         </button>
       </div>
 
+      {error && <p className="alert-error">{error}</p>}
+
       <div className="metrics-grid">
         <MetricCard label="Fecha" value={formatDate(fecha)} tone="accent" delay={0.05} />
-        <MetricCard label="Operarios" value={String(ops.length)} delay={0.1} />
+        <MetricCard label="Operarios" value={cargando ? "…" : String(ops.length)} delay={0.1} />
         <MetricCard label="Laborando" value={String(laborando)} tone="ok" delay={0.15} />
         <MetricCard label="Ausentes" value={String(ausentes)} tone="warn" delay={0.2} />
       </div>
@@ -72,6 +75,13 @@ export function AsistenciaPage() {
                 </tr>
               </thead>
               <tbody>
+                {!cargando && ops.length === 0 && (
+                  <tr>
+                    <td colSpan={4} style={{ color: "var(--muted)" }}>
+                      No hay operarios activos en esta área.
+                    </td>
+                  </tr>
+                )}
                 {ops.map((o) => {
                   const estado = getAsistencia(o.id, fecha) ?? "LABORANDO";
                   return (
@@ -92,7 +102,7 @@ export function AsistenciaPage() {
                             border: "1px solid var(--line-strong)",
                           }}
                         >
-                          {ESTADOS_NOVEDAD.map((e) => (
+                          {estados.map((e) => (
                             <option key={e.codigo} value={e.codigo}>
                               {e.nombre}
                             </option>
@@ -137,9 +147,8 @@ export function AsistenciaPage() {
             </tbody>
           </table>
           <p className="note-block" style={{ marginTop: "0.85rem" }}>
-            Al conectar la BD en el servidor 205, cada cambio guardará en{" "}
-            <strong>asistencia_operario</strong> y el resumen saldrá de{" "}
-            <strong>vw_resumen_novedades_dia</strong>.
+            Cada cambio se guarda en <strong>asistencia_operario</strong>. Los operarios sin
+            registro del día cuentan como <strong>LABORANDO</strong>.
           </p>
         </Panel>
       </div>

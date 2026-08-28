@@ -7,6 +7,12 @@
 
 ## 1. Instalar MySQL en el servidor 205
 
+El servidor **205** es la máquina Windows `192.168.20.205`, que ya tiene el
+servicio `MySQL80` en ejecución. No hace falta instalar nada ni copiar archivos
+por red: los scripts se ejecutan localmente.
+
+Para una instalación desde cero en Linux:
+
 ```bash
 # Ubuntu/Debian
 sudo apt update
@@ -19,7 +25,25 @@ sudo mysql_secure_installation
 
 ## 2. Crear base, tablas y vistas
 
-Copia la carpeta `database/mysql/` al servidor y ejecuta:
+### Windows (servidor 205) — recomendado
+
+Desde PowerShell, en `database/mysql/`:
+
+```powershell
+.\deploy_205.ps1
+```
+
+Pide la contraseña de `root` y define la del usuario `cierre_app`, crea el
+esquema, aplica los permisos y verifica el resultado. Es idempotente y ninguna
+contraseña queda escrita en disco ni en el historial de git.
+
+Para exponer el usuario a otros equipos de la red interna:
+
+```powershell
+.\deploy_205.ps1 -AppHosts @('localhost','192.168.20.%')
+```
+
+### Linux / ejecución manual
 
 ```bash
 mysql -u root -p < 001_crear_base_mysql.sql
@@ -34,6 +58,9 @@ SOURCE /ruta/002_usuario_app_mysql.sql;
 ```
 
 ## 3. Permitir conexión remota (desde tu PC)
+
+> No aplica mientras la API y MySQL corran en el mismo equipo (205). Solo es
+> necesario cuando el backend se despliegue en otra máquina.
 
 Edita `/etc/mysql/mysql.conf.d/mysqld.cnf`:
 

@@ -1,24 +1,6 @@
-export type RegistroCierre = {
-  id: string;
-  fecha: string;
-  totalBeneficio: number;
-  horaInicio: string;
-  horaFin: string;
-  duracionMin: number;
-  tiempoParadasMin: number;
-  paradaProgramadaMin: number;
-  velocidadLinea: number;
-  horasLaboradas: number;
-  tardanzaInicio: number;
-  productividad: number;
-  velocidadNeta: number;
-  velocidadBruta: number;
-  toleranciaCero: number;
-  pieles: number;
-  observacion: string;
-  mes: string;
-  anio: number;
-};
+import type { RegistroCierre } from "../types";
+
+export type { RegistroCierre, NuevoRegistroInput } from "../types";
 
 export const baseDatosCierreSeed: RegistroCierre[] = [
   {
@@ -85,7 +67,3 @@ export const baseDatosCierreSeed: RegistroCierre[] = [
     anio: 2026,
   },
 ];
-
-export type NuevoRegistroInput = Omit<RegistroCierre, "id" | "mes" | "anio" | "duracionMin"> & {
-  duracionMin?: number;
-};

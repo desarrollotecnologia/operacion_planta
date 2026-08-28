@@ -2,18 +2,20 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import {
-  asistenciaSeed,
-  ESTADOS_NOVEDAD,
-  operariosSeed,
-  type AsistenciaDia,
-  type NuevoOperarioInput,
-  type Operario,
-} from "../data/mock/operarios";
+import { api, ApiError } from "../lib/api";
+import type {
+  Area,
+  AsistenciaDia,
+  EstadoNovedad,
+  NuevoOperarioInput,
+  Operario,
+} from "../data/types";
+import { ESTADOS_NOVEDAD } from "../data/mock/operarios";
 
 type ResumenEstado = {
   criterio: string;
@@ -25,34 +27,64 @@ type ResumenEstado = {
 type PersonalStore = {
   operarios: Operario[];
   asistencias: AsistenciaDia[];
-  crearOperario: (input: NuevoOperarioInput) => void;
-  guardarAsistencia: (operarioId: string, fecha: string, estadoCodigo: string) => void;
+  estados: EstadoNovedad[];
+  cargando: boolean;
+  error: string | null;
+  crearOperario: (input: NuevoOperarioInput) => Promise<Operario | null>;
+  guardarAsistencia: (operarioId: string, fecha: string, estadoCodigo: string) => Promise<void>;
   getAsistencia: (operarioId: string, fecha: string) => string | undefined;
-  getResumenDia: (fecha: string, area?: Operario["area"]) => ResumenEstado[];
+  getResumenDia: (fecha: string, area?: Area) => ResumenEstado[];
+  recargar: () => Promise<void>;
 };
 
 const PersonalStoreContext = createContext<PersonalStore | null>(null);
 
-function shortName(puesto: string, nombreCompleto: string) {
-  const first = nombreCompleto.split(" ")[0] ?? nombreCompleto;
-  return `${puesto} ${first}`.trim();
-}
-
 export function PersonalStoreProvider({ children }: { children: ReactNode }) {
-  const [operarios, setOperarios] = useState<Operario[]>(operariosSeed);
-  const [asistencias, setAsistencias] = useState<AsistenciaDia[]>(asistenciaSeed);
+  const [operarios, setOperarios] = useState<Operario[]>([]);
+  const [asistencias, setAsistencias] = useState<AsistenciaDia[]>([]);
+  const [estados, setEstados] = useState<EstadoNovedad[]>(ESTADOS_NOVEDAD);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const crearOperario = useCallback((input: NuevoOperarioInput) => {
-    const op: Operario = {
-      ...input,
-      id: `op-${Date.now()}`,
-      nombreCorto: input.nombreCorto ?? shortName(input.puesto, input.nombreCompleto),
-    };
-    setOperarios((prev) => [...prev, op].sort((a, b) => a.itemOrden - b.itemOrden));
+  const recargar = useCallback(async () => {
+    setCargando(true);
+    try {
+      const [ops, asis, cat] = await Promise.all([
+        api.operarios(),
+        api.asistencia(),
+        api.catalogos(),
+      ]);
+      setOperarios(ops);
+      setAsistencias(asis);
+      if (cat.estados.length) setEstados(cat.estados);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Error al cargar el personal.");
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void recargar();
+  }, [recargar]);
+
+  const crearOperario = useCallback(async (input: NuevoOperarioInput) => {
+    try {
+      const creado = await api.crearOperario(input);
+      setOperarios((prev) => [...prev, creado].sort((a, b) => a.itemOrden - b.itemOrden));
+      setError(null);
+      return creado;
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "No se pudo crear el operario.");
+      return null;
+    }
   }, []);
 
   const guardarAsistencia = useCallback(
-    (operarioId: string, fecha: string, estadoCodigo: string) => {
+    async (operarioId: string, fecha: string, estadoCodigo: string) => {
+      const anterior = asistencias;
+      // Actualiza la vista de inmediato; si la API falla se revierte.
       setAsistencias((prev) => {
         const idx = prev.findIndex((a) => a.operarioId === operarioId && a.fecha === fecha);
         if (idx === -1) return [...prev, { operarioId, fecha, estadoCodigo }];
@@ -60,8 +92,16 @@ export function PersonalStoreProvider({ children }: { children: ReactNode }) {
         next[idx] = { operarioId, fecha, estadoCodigo };
         return next;
       });
+
+      try {
+        await api.guardarAsistencia(operarioId, fecha, estadoCodigo);
+        setError(null);
+      } catch (err) {
+        setAsistencias(anterior);
+        setError(err instanceof ApiError ? err.message : "No se pudo guardar la asistencia.");
+      }
     },
-    [],
+    [asistencias],
   );
 
   const getAsistencia = useCallback(
@@ -71,7 +111,7 @@ export function PersonalStoreProvider({ children }: { children: ReactNode }) {
   );
 
   const getResumenDia = useCallback(
-    (fecha: string, area: Operario["area"] = "LINEA"): ResumenEstado[] => {
+    (fecha: string, area: Area = "LINEA"): ResumenEstado[] => {
       const ops = operarios.filter((o) => o.activo && o.area === area);
       const total = ops.length || 1;
 
@@ -83,8 +123,9 @@ export function PersonalStoreProvider({ children }: { children: ReactNode }) {
         byEstado.set(codigo, list);
       }
 
-      return ESTADOS_NOVEDAD.filter((e) => (byEstado.get(e.codigo)?.length ?? 0) > 0).map(
-        (e) => {
+      return estados
+        .filter((e) => (byEstado.get(e.codigo)?.length ?? 0) > 0)
+        .map((e) => {
           const list = byEstado.get(e.codigo) ?? [];
           return {
             criterio: e.nombre.toUpperCase(),
@@ -92,22 +133,36 @@ export function PersonalStoreProvider({ children }: { children: ReactNode }) {
             pct: list.length / total,
             operarios: list.map((o) => o.nombreCorto).join(" / "),
           };
-        },
-      );
+        });
     },
-    [operarios, getAsistencia],
+    [operarios, getAsistencia, estados],
   );
 
   const value = useMemo(
     () => ({
       operarios,
       asistencias,
+      estados,
+      cargando,
+      error,
       crearOperario,
       guardarAsistencia,
       getAsistencia,
       getResumenDia,
+      recargar,
     }),
-    [operarios, asistencias, crearOperario, guardarAsistencia, getAsistencia, getResumenDia],
+    [
+      operarios,
+      asistencias,
+      estados,
+      cargando,
+      error,
+      crearOperario,
+      guardarAsistencia,
+      getAsistencia,
+      getResumenDia,
+      recargar,
+    ],
   );
 
   return (
