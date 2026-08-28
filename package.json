@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "start": "node server/index.mjs",
     "deploy": "npm run build && npm start",
-    "seed": "node server/seed.mjs"
+    "seed": "node server/seed.mjs",
+    "check-db": "node server/check-db.mjs",
+    "smoke": "node server/smoke-test.mjs",
+    "smoke:clean": "node server/cleanup-test.mjs"
   },
   "dependencies": {
     "compression": "^1.8.1",
