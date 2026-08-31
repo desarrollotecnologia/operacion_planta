@@ -4,11 +4,6 @@ import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { useCierreStore } from "../../store/CierreStore";
 import "../../components/ui.css";
 
-function difClass(n: number) {
-  if (Math.abs(n) < 0.0005) return "dif-zero";
-  return n < 0 ? "dif-neg" : "dif-pos";
-}
-
 function indicadoresTurno(c: CierreProcesoData) {
   return [
     ["Hora de inicio", c.horaInicio],
@@ -44,7 +39,7 @@ export function CierreProcesoPage() {
       <PageHeader
         eyebrow="Cierre de proceso"
         title="Cierre de proceso"
-        description="Tablero del turno: indicadores de beneficio, OEE, pieles y operatividad de personal."
+        description="Tablero del turno: indicadores de beneficio, OEE y calidad."
       />
 
       <div className="metrics-grid">
@@ -102,37 +97,8 @@ export function CierreProcesoPage() {
         )}
       </div>
 
-      {c.operatividadLinea.length > 0 && (
-        <Panel title="Operatividad de línea" subtitle="Desde novedades + consolidado" delay={0.28}>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Criterio</th>
-                <th>Real</th>
-                <th>%</th>
-                <th>Día</th>
-                <th>% día</th>
-                <th>Dif</th>
-              </tr>
-            </thead>
-            <tbody>
-              {c.operatividadLinea.map((r) => (
-                <tr key={r.criterio}>
-                  <td>{r.criterio}</td>
-                  <td>{r.real}</td>
-                  <td>{pct(r.pct)}</td>
-                  <td>{r.dia}</td>
-                  <td>{pct(r.diaPct)}</td>
-                  <td className={difClass(r.dif)}>{pct(r.dif)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Panel>
-      )}
-
       {c.laborandoLinea.length > 0 && (
-        <Panel title="Laborando · detalle" delay={0.34}>
+        <Panel title="Laborando · detalle" delay={0.28}>
           <table className="data-table">
             <thead>
               <tr>
