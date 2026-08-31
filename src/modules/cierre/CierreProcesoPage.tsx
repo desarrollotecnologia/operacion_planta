@@ -60,26 +60,22 @@ function TablaIndicadores({ filas }: { filas: readonly (readonly [string, string
   );
 }
 
-function TablaOperatividad({
+function OperatividadBlock({
   titulo,
   filas,
   totales,
+  embedded = false,
 }: {
   titulo: string;
   filas: OperatividadBeneficioRow[];
   totales: OperatividadTotales;
+  embedded?: boolean;
 }) {
-  if (!filas.length) {
-    return (
-      <Panel title={titulo}>
-        <p className="note-block">Sin datos de personal para esta área. Regístrelos en Asistencia diaria.</p>
-      </Panel>
-    );
-  }
-
-  return (
-    <Panel title={titulo}>
-      <div style={{ overflowX: "auto" }}>
+  const body = !filas.length ? (
+    <p className="note-block">Sin datos de personal para esta área. Regístrelos en Asistencia diaria.</p>
+  ) : (
+    <>
+      <div className="cierre-op-scroll">
         <table className="data-table">
           <thead>
             <tr>
@@ -110,13 +106,21 @@ function TablaOperatividad({
         </table>
       </div>
       <div className="cierre-op-foot">
-        <span>
-          Total {totales.totalPersonas}, 100%
-        </span>
+        <span>Total {totales.totalPersonas}, 100%</span>
         <span className="ausentismo">Total ausentismo {pct(totales.ausentismoPct)}</span>
       </div>
-    </Panel>
+    </>
   );
+
+  if (embedded) {
+    return (
+      <Panel title={titulo} className="cierre-op-panel">
+        {body}
+      </Panel>
+    );
+  }
+
+  return <Panel title={titulo}>{body}</Panel>;
 }
 
 function SeccionCierre({
@@ -127,6 +131,7 @@ function SeccionCierre({
   operatividadTitulo,
   operatividadFilas,
   operatividadTotales,
+  operatividadAlLado = false,
 }: {
   titulo: string;
   subtitulo: string;
@@ -135,7 +140,17 @@ function SeccionCierre({
   operatividadTitulo: string;
   operatividadFilas: OperatividadBeneficioRow[];
   operatividadTotales: OperatividadTotales;
+  operatividadAlLado?: boolean;
 }) {
+  const tablaOperatividad = (
+    <OperatividadBlock
+      titulo={operatividadTitulo}
+      filas={operatividadFilas}
+      totales={operatividadTotales}
+      embedded={operatividadAlLado}
+    />
+  );
+
   return (
     <section className="cierre-seccion">
       <div className="cierre-seccion-head">
@@ -143,36 +158,43 @@ function SeccionCierre({
         <p>{subtitulo}</p>
       </div>
 
-      <div className="cierre-bloque-grid">
-        <Panel title="Indicadores">
-          <TablaIndicadores filas={indicadores} />
-        </Panel>
-
-        {(observaciones?.fallos || observaciones?.proceso) && (
-          <Panel title="Observaciones">
-            {observaciones.fallos ? (
-              <p className="note-block">
-                <strong>Fallos en maquinaria</strong>
-                <br />
-                {observaciones.fallos}
-              </p>
-            ) : null}
-            {observaciones.proceso ? (
-              <p className="note-block" style={{ marginTop: observaciones.fallos ? "0.75rem" : 0 }}>
-                <strong>Observaciones de proceso</strong>
-                <br />
-                {observaciones.proceso}
-              </p>
-            ) : null}
+      {operatividadAlLado ? (
+        <div className="cierre-bloque-grid cierre-bloque-grid--split">
+          <Panel title="Indicadores" className="cierre-ind-panel">
+            <TablaIndicadores filas={indicadores} />
           </Panel>
-        )}
-      </div>
+          {tablaOperatividad}
+        </div>
+      ) : (
+        <>
+          <div className="cierre-bloque-grid">
+            <Panel title="Indicadores">
+              <TablaIndicadores filas={indicadores} />
+            </Panel>
 
-      <TablaOperatividad
-        titulo={operatividadTitulo}
-        filas={operatividadFilas}
-        totales={operatividadTotales}
-      />
+            {(observaciones?.fallos || observaciones?.proceso) && (
+              <Panel title="Observaciones">
+                {observaciones.fallos ? (
+                  <p className="note-block">
+                    <strong>Fallos en maquinaria</strong>
+                    <br />
+                    {observaciones.fallos}
+                  </p>
+                ) : null}
+                {observaciones.proceso ? (
+                  <p className="note-block" style={{ marginTop: observaciones.fallos ? "0.75rem" : 0 }}>
+                    <strong>Observaciones de proceso</strong>
+                    <br />
+                    {observaciones.proceso}
+                  </p>
+                ) : null}
+              </Panel>
+            )}
+          </div>
+
+          {tablaOperatividad}
+        </>
+      )}
     </section>
   );
 }
@@ -233,6 +255,7 @@ export function CierreProcesoPage() {
         operatividadTitulo="Operatividad productos cárnicos comestibles"
         operatividadFilas={c.laborandoPccom}
         operatividadTotales={c.totalesPccom}
+        operatividadAlLado
       />
     </div>
   );
