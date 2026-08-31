@@ -16,6 +16,7 @@
     "import:datos": "node server/import-novedades.mjs && node server/import-cierre.mjs",
     "check-db": "node server/check-db.mjs",
     "check-fechas": "node server/check-fechas.mjs",
+    "check-migraciones": "node server/check-migraciones.mjs",
     "verify:cierre": "node server/verify-cierre.mjs",
     "smoke": "node server/smoke-test.mjs",
     "smoke:clean": "node server/cleanup-test.mjs"

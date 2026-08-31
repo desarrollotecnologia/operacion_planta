@@ -17,7 +17,8 @@ param(
     [string] $Archivo,
     [string] $MysqlHost = 'localhost',
     [int]    $Port      = 3306,
-    [string] $RootUser  = 'root'
+    [string] $RootUser  = 'root',
+    [string] $Database  = 'cierre_operaciones'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -52,38 +53,71 @@ Write-Host ''
 $rootSecure = Read-Host "Contrasena de '$RootUser' en MySQL" -AsSecureString
 $env:MYSQL_PWD = ConvertFrom-SecureStringPlain $rootSecure
 
-$outFile = [IO.Path]::GetTempFileName()
-$errFile = [IO.Path]::GetTempFileName()
+function Invoke-SqlFile {
+    param([string] $Path)
 
+    $outFile = [IO.Path]::GetTempFileName()
+    $errFile = [IO.Path]::GetTempFileName()
+
+    try {
+        $mysqlArgs = @(
+            "--host=$MysqlHost"
+            "--port=$Port"
+            "--user=$RootUser"
+            '--default-character-set=utf8mb4'
+            '--show-warnings'
+        )
+
+        $proc = Start-Process -FilePath $mysqlExe -ArgumentList $mysqlArgs `
+            -RedirectStandardInput $Path `
+            -RedirectStandardOutput $outFile `
+            -RedirectStandardError  $errFile `
+            -NoNewWindow -Wait -PassThru
+
+        [PSCustomObject]@{
+            ExitCode = $proc.ExitCode
+            Salida   = (Get-Content $outFile -Raw)
+            Error    = (Get-Content $errFile -Raw)
+        }
+    }
+    finally {
+        Remove-Item $outFile, $errFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
+$registroFile = $null
 try {
-    $mysqlArgs = @(
-        "--host=$MysqlHost"
-        "--port=$Port"
-        "--user=$RootUser"
-        '--default-character-set=utf8mb4'
-        '--show-warnings'
-    )
+    $r = Invoke-SqlFile -Path $sqlPath
 
-    $proc = Start-Process -FilePath $mysqlExe -ArgumentList $mysqlArgs `
-        -RedirectStandardInput $sqlPath `
-        -RedirectStandardOutput $outFile `
-        -RedirectStandardError  $errFile `
-        -NoNewWindow -Wait -PassThru
-
-    $out = Get-Content $outFile -Raw
-    $err = Get-Content $errFile -Raw
-
-    if ($proc.ExitCode -ne 0) {
+    if ($r.ExitCode -ne 0) {
         Write-Host '  [FALLO] La migracion no se aplico.' -ForegroundColor Red
-        if ($err) { Write-Host $err.Trim() -ForegroundColor Red }
-        throw "mysql devolvio codigo $($proc.ExitCode)."
+        if ($r.Error) { Write-Host $r.Error.Trim() -ForegroundColor Red }
+        throw "mysql devolvio codigo $($r.ExitCode)."
     }
 
     Write-Host '  [OK] Migracion aplicada.' -ForegroundColor Green
-    if ($err -and $err.Trim()) { Write-Host $err.Trim() -ForegroundColor DarkYellow }
-    if ($out -and $out.Trim()) { Write-Host $out.Trim() }
+    if ($r.Error -and $r.Error.Trim()) { Write-Host $r.Error.Trim() -ForegroundColor DarkYellow }
+    if ($r.Salida -and $r.Salida.Trim()) { Write-Host $r.Salida.Trim() }
+
+    # Deja constancia para que el despliegue sepa que esta migracion ya corrio.
+    $nombre = (Split-Path -Leaf $sqlPath).Replace("'", "''")
+    $registroFile = Join-Path $env:TEMP "registro_$([guid]::NewGuid().ToString('N')).sql"
+    @"
+USE ``$Database``;
+INSERT IGNORE INTO migracion_aplicada (archivo) VALUES ('$nombre');
+"@ | Set-Content -Path $registroFile -Encoding utf8
+
+    $reg = Invoke-SqlFile -Path $registroFile
+    if ($reg.ExitCode -eq 0) {
+        Write-Host "  [OK] Registrada como aplicada: $nombre" -ForegroundColor Green
+    }
+    else {
+        # No es motivo para dar la migracion por fallida: ya se aplico.
+        Write-Host '  [AVISO] La migracion se aplico pero no se pudo registrar.' -ForegroundColor DarkYellow
+        Write-Host '  Si aun no existe la tabla, aplica 005_registro_migraciones.sql.' -ForegroundColor DarkYellow
+    }
 }
 finally {
     Remove-Item env:MYSQL_PWD -ErrorAction SilentlyContinue
-    Remove-Item $outFile, $errFile -Force -ErrorAction SilentlyContinue
+    if ($registroFile) { Remove-Item $registroFile -Force -ErrorAction SilentlyContinue }
 }

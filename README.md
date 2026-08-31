@@ -87,8 +87,14 @@ El usuario `cierre_app` solo puede leer y escribir datos, así que los cambios d
 estructura van con la cuenta de root:
 
 ```powershell
-.\database\mysql\aplicar_migracion.ps1 003_duracion_cruce_medianoche.sql
+.\database\mysql\aplicar_migracion.ps1 004_simulacion_horas.sql
 ```
+
+Cada archivo aplicado queda anotado en la tabla `migracion_aplicada`, y
+`npm run check-migraciones` compara esa tabla contra los archivos `NNN_*.sql` de
+la carpeta. Una migración nueva se detecta por el solo hecho de existir el
+archivo, sin listas que mantener. El despliegue termina con esa comprobación y
+avisa si falta alguna.
 
 ### Arranque automático
 
@@ -97,6 +103,16 @@ Para que arranque solo con el servidor, en PowerShell como Administrador:
 ```powershell
 .\server\register-task.ps1
 ```
+
+### Desplegar cambios
+
+Doble clic en `actualizar-y-desplegar.bat`. Pide permisos de administrador al
+arrancar (los necesita para reiniciar la tarea, que corre como SYSTEM), trae los
+cambios, recompila, reinicia el servidor y comprueba API y migraciones.
+
+Recompilar no basta cuando el cambio toca `server/`: el proceso Node mantiene el
+código en memoria y hay que reiniciarlo. Los cambios de `src/` sí se aplican al
+reconstruir.
 
 ## Desarrollo
 

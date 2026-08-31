@@ -2,6 +2,22 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
+rem El tablero corre como tarea programada bajo SYSTEM, asi que reiniciarlo exige
+rem privilegios. Se piden aqui, al inicio, para no interrumpir a mitad del
+rem despliegue con un aviso que caduca a los dos minutos.
+net session >nul 2>&1
+if errorlevel 1 (
+  echo Solicitando permisos de administrador...
+  echo Acepte el aviso de Control de cuentas de usuario.
+  powershell -NoProfile -Command "try { Start-Process -FilePath '%~f0' -Verb RunAs -ErrorAction Stop } catch { exit 1 }"
+  if errorlevel 1 (
+    echo.
+    echo ERROR: no se concedieron los permisos. El despliegue no se ejecuto.
+    pause
+  )
+  exit /b
+)
+
 set "PORT=5174"
 set "TASK_NAME=Cierre de Operaciones - Tablero"
 
@@ -30,38 +46,73 @@ if errorlevel 1 (
   goto :fail
 )
 
-echo [1/5] Descargando ultimos cambios ^(git pull^)...
-git pull
+rem --autostash aparta los cambios locales antes de traer y los repone despues.
+rem npm install reescribe package-lock.json, y sin esto el pull se negaria a correr.
+echo [1/6] Descargando ultimos cambios ^(git pull^)...
+git pull --autostash
 if errorlevel 1 (
   echo ERROR: git pull fallo. Revise conflictos o conexion con el remoto.
   goto :fail
 )
 
 echo.
-echo [2/5] Instalando dependencias ^(npm install^)...
+echo [2/6] Instalando dependencias ^(npm install^)...
 call npm install
 if errorlevel 1 goto :fail
 
 echo.
-echo [3/5] Compilando frontend ^(npm run build^)...
+echo [3/6] Compilando frontend ^(npm run build^)...
 call npm run build
 if errorlevel 1 goto :fail
 
 if not exist "logs" mkdir "logs"
 
 echo.
-echo [4/5] Reiniciando servidor en puerto %PORT%...
+echo [4/6] Reiniciando servidor en puerto %PORT%...
+if not exist "%~dp0server\reiniciar-servidor.ps1" (
+  echo ERROR: falta server\reiniciar-servidor.ps1
+  goto :fail
+)
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0server\reiniciar-servidor.ps1" -Port %PORT% -TaskName "%TASK_NAME%"
-if errorlevel 1 goto :fail
+if errorlevel 1 (
+  echo ERROR: no se pudo reiniciar el servidor.
+  goto :fail
+)
 
 echo.
-echo [5/5] Verificando API...
+echo [5/6] Verificando API...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$ok=$false; for($i=1;$i -le 15;$i++){ Start-Sleep 1; try { $r=Invoke-WebRequest 'http://localhost:%PORT%/api/health' -UseBasicParsing -TimeoutSec 3; if($r.StatusCode -eq 200){ $ok=$true; break } } catch {} }; if($ok){ Write-Host '  [OK] /api/health responde.' -ForegroundColor Green; try { $j=$r.Content | ConvertFrom-Json; Write-Host ('  Base: ' + $j.db + '  MySQL: ' + $j.mysql) } catch {} } else { Write-Host '  [AVISO] El servidor no respondio a tiempo. Revise logs\tablero.log' -ForegroundColor Yellow; exit 1 }"
 if errorlevel 1 (
   echo.
   echo El despliegue termino pero la verificacion fallo.
   goto :fail
+)
+
+echo.
+echo [6/6] Revisando migraciones de base de datos...
+rem 0 = al dia, 1 = faltan migraciones, 2 = no se pudo comprobar.
+rem Se evalua el codigo mayor primero: "errorlevel N" significa "N o mas".
+node "%~dp0server\check-migraciones.mjs"
+if errorlevel 2 (
+  echo ============================================================
+  echo   Despliegue completado, pero no se pudo revisar la base.
+  echo   Verifique el estado de las migraciones a mano.
+  echo   Local: http://localhost:%PORT%
+  echo ============================================================
+  echo.
+  pause
+  exit /b 0
+)
+if errorlevel 1 (
+  echo ============================================================
+  echo   Despliegue completado, PERO FALTAN MIGRACIONES.
+  echo   Aplique las indicadas arriba antes de usar el tablero.
+  echo   Local: http://localhost:%PORT%
+  echo ============================================================
+  echo.
+  pause
+  exit /b 0
 )
 
 echo.
