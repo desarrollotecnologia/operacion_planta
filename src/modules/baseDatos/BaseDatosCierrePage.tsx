@@ -149,7 +149,7 @@ export function BaseDatosCierrePage() {
   };
 
   return (
-    <div>
+    <div className="base-datos-page">
       <PageHeader
         eyebrow="Base de datos cierre"
         title="Base de datos cierre"
@@ -361,7 +361,7 @@ export function BaseDatosCierrePage() {
 
       <Panel
         title={`Detalle ${mesLabel} ${anioFoco}`}
-        subtitle="Lista de cierres guardados · clic en una fila para cargar al formulario"
+        subtitle="Lista de cierres guardados · clic en una fila para cargar al formulario · en portátil desliza horizontalmente"
         delay={0.2}
       >
         {cargando ? <p className="note-block">Cargando registros…</p> : null}

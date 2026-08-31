@@ -1,28 +1,63 @@
+/* Página con tabla ancha: usa todo el ancho en monitores grandes */
+.shell-content:has(.base-datos-page) {
+  max-width: none;
+}
+
+.base-datos-page .panel-body {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
 .base-table-wrap {
   overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
   -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 }
 
 .base-table-wrap .base-detail-table {
-  min-width: 72rem;
-  width: max(100%, 72rem);
-  table-layout: fixed;
+  width: 100%;
+  min-width: 68rem;
+  table-layout: auto;
+  border-collapse: collapse;
 }
 
+/* Columnas numéricas: solo el ancho del contenido */
 .base-table-wrap .base-detail-table th:not(.col-obs),
 .base-table-wrap .base-detail-table td:not(.col-obs) {
+  width: 1%;
   white-space: nowrap;
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
 }
 
+/* Observación: ocupa el espacio restante en pantallas grandes */
 .base-table-wrap .base-detail-table th.col-obs,
 .base-table-wrap .base-detail-table td.col-obs {
-  width: 42%;
-  min-width: 22rem;
+  width: auto;
+  min-width: 18rem;
+  max-width: none;
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.5;
   font-size: 0.88rem;
   color: var(--ink);
+  padding-right: 1rem;
+}
+
+@media (min-width: 1400px) {
+  .base-table-wrap .base-detail-table th.col-obs,
+  .base-table-wrap .base-detail-table td.col-obs {
+    min-width: 24rem;
+  }
+}
+
+@media (min-width: 1800px) {
+  .base-table-wrap .base-detail-table th.col-obs,
+  .base-table-wrap .base-detail-table td.col-obs {
+    min-width: 32rem;
+  }
 }
 
 .base-table-wrap .data-table tbody tr {
@@ -35,7 +70,6 @@
 
 .base-table-wrap .data-table td.num {
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
 .bd-legend {
