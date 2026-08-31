@@ -1,18 +1,16 @@
 # Cierre de Operaciones
 
-Prototipo visual (React + Vite) del tablero de **cierre diario de beneficio** y **novedades de personal**, con alcance **2026+**.
+Aplicación web de **cierre diario de beneficio** y **novedades de personal** para planta Colbeef. React + Vite en el frontend, Node/Express + MySQL en el backend. Alcance **2026+**.
 
 ## Módulos
 
-**Visualizar**
-- Inicio
-- Simulación
-- Cierre de proceso
-- Consolidado
-- Novedades
-
-**Capturar**
-- Base de datos cierre (formulario que alimentará el resto)
+1. Simulación
+2. Cierre de proceso
+3. Base de datos cierre
+4. Asistencia diaria
+5. Consolidado
+6. Novedades
+7. Operarios
 
 ## Arquitectura
 
@@ -126,7 +124,7 @@ npm run lint
 
 ## Estado de los módulos
 
-Los ocho módulos leen de MySQL. El histórico cargado va del **13 de marzo al 27
+Los siete módulos leen y escriben en MySQL. El histórico cargado va del **13 de marzo al 27
 de agosto de 2026** (142 días con producción).
 
 La hoja `CONSOLIDADO DE CIERRE` tiene registros desde 2024, pero solo se cargan

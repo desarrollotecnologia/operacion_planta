@@ -28,8 +28,8 @@ export function AppShell() {
         </nav>
 
         <div className="nav-foot">
-          <p>Alcance 2026+</p>
-          <p className="muted">{registros.length} cierres en base</p>
+          <p>Operación en planta · 2026+</p>
+          <p className="muted">{registros.length} cierres registrados</p>
         </div>
       </aside>
 
@@ -41,7 +41,7 @@ export function AppShell() {
             transition={{ duration: 0.5 }}
           >
             <p className="top-title">Cierre de Operaciones</p>
-            <p className="top-sub">Simulación · Cierre · Base de datos · Asistencia · más</p>
+            <p className="top-sub">Tablero de cierre diario · Colbeef</p>
           </motion.div>
           <div className="top-actions">
             <label className="fecha-select">

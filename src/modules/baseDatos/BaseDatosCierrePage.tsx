@@ -57,7 +57,7 @@ export function BaseDatosCierrePage() {
   return (
     <div>
       <PageHeader
-        eyebrow="Módulo 5 · Capturar"
+        eyebrow="Base de datos cierre"
         title="Base de datos cierre"
         description="Esta es la hoja que manda: al guardar un día se escribe en la tabla cierre_diario de MySQL y el resto de vistas lee de ahí."
       />

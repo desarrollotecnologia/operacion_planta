@@ -53,7 +53,7 @@ export function ConsolidadoPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="Módulo 6 · Visualizar"
+        eyebrow="Consolidado"
         title="Consolidado de cierre"
         description="Histórico 2026: beneficio, tiempos, rendimientos y personal asignado/contratado por día."
       />

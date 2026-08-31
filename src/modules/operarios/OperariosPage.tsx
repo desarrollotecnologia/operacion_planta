@@ -42,7 +42,7 @@ export function OperariosPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="Capturar · Personal"
+        eyebrow="Operarios"
         title="Operarios y trabajadores"
         description="Reemplaza el Excel de novedades: aquí se crean y administran los operarios de línea y PCCOM."
       />

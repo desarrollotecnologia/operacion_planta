@@ -23,7 +23,7 @@ export function CierreProcesoPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="Módulo 4 · Visualizar"
+        eyebrow="Cierre de proceso"
         title="Cierre de proceso"
         description="Tablero del turno: indicadores de beneficio, OEE, pieles y operatividad de personal."
       />

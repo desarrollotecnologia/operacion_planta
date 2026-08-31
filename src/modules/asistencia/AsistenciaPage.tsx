@@ -22,7 +22,7 @@ export function AsistenciaPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="Capturar · Asistencia"
+        eyebrow="Asistencia diaria"
         title="Novedades del día"
         description="Marca el estado de cada operario. Esto alimenta el RESUMEN y el cierre de proceso (sin Excel)."
       />

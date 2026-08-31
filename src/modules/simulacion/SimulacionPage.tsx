@@ -18,7 +18,7 @@ export function SimulacionPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="Módulo 1 · Visualizar"
+        eyebrow="Simulación"
         title="Simulación de velocidad"
         description={`Parámetros del cierre del ${selectedFecha} (hoja SIMULACION / Base de datos).`}
       />

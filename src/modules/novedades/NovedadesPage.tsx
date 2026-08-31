@@ -23,7 +23,7 @@ export function NovedadesPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="Desde archivo Novedades · Visualizar"
+        eyebrow="Novedades de personal"
         title="Novedades de personal"
         description="Operatividad de línea alineada a la fecha del cierre."
       />
