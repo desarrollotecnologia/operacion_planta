@@ -40,6 +40,9 @@ function parseCierre(body) {
     velocidad_bruta: asNumber(body.velocidadBruta, 'velocidadBruta', { min: 0, max: 10000, fallback: 0 }),
     tolerancia_cero: asNumber(body.toleranciaCero, 'toleranciaCero', { min: 0, max: 1000, fallback: 0 }),
     pieles: asNumber(body.pieles, 'pieles', { min: 0, max: 1000, fallback: 0 }),
+    corte_pierna: asNumber(body.cortePierna, 'cortePierna', { min: 0, max: 1000, fallback: 0 }),
+    sobrebarriga_rota: asNumber(body.sobrebarrigaRota, 'sobrebarrigaRota', { min: 0, max: 1000, fallback: 0 }),
+    cobertura_grasa: asNumber(body.coberturaGrasa, 'coberturaGrasa', { min: 0, max: 1000, fallback: 0 }),
     observacion: asText(body.observacion, 'observacion', { maxLength: 5000, fallback: '' }),
   };
 }
@@ -53,8 +56,9 @@ async function upsertCierre(data) {
     `INSERT INTO cierre_diario (
        fecha, total_beneficio, hora_inicio, hora_fin, tiempo_paradas_min,
        parada_programada_min, velocidad_linea, horas_laboradas, tardanza_inicio_min,
-       productividad, velocidad_neta, velocidad_bruta, tolerancia_cero, pieles, observacion
-     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       productividad, velocidad_neta, velocidad_bruta, tolerancia_cero, pieles,
+       corte_pierna, sobrebarriga_rota, cobertura_grasa, observacion
+     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
      ON DUPLICATE KEY UPDATE
        total_beneficio       = VALUES(total_beneficio),
        hora_inicio           = VALUES(hora_inicio),
@@ -69,13 +73,17 @@ async function upsertCierre(data) {
        velocidad_bruta       = VALUES(velocidad_bruta),
        tolerancia_cero       = VALUES(tolerancia_cero),
        pieles                = VALUES(pieles),
+       corte_pierna          = VALUES(corte_pierna),
+       sobrebarriga_rota     = VALUES(sobrebarriga_rota),
+       cobertura_grasa       = VALUES(cobertura_grasa),
        observacion           = VALUES(observacion)`,
     [
       data.fecha, data.total_beneficio, data.hora_inicio, data.hora_fin,
       data.tiempo_paradas_min, data.parada_programada_min, data.velocidad_linea,
       data.horas_laboradas, data.tardanza_inicio_min, data.productividad,
       data.velocidad_neta, data.velocidad_bruta, data.tolerancia_cero,
-      data.pieles, data.observacion,
+      data.pieles, data.corte_pierna, data.sobrebarriga_rota, data.cobertura_grasa,
+      data.observacion,
     ],
   );
 
