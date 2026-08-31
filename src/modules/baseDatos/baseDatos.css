@@ -2,6 +2,55 @@
   overflow-x: auto;
 }
 
+.bd-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.bd-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bd-legend i {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--ink) 15%, var(--line-strong));
+}
+
+.bd-lg-input i {
+  background: #fff2cc;
+}
+
+.bd-lg-calc i {
+  background: white;
+}
+
+.field input.field-input,
+.field textarea.field-input {
+  background: #fff2cc;
+}
+
+.field input.field-calc,
+.field textarea.field-calc {
+  background: white;
+  color: var(--ink);
+  cursor: default;
+  font-variant-numeric: tabular-nums;
+}
+
+.field input.field-calc:focus,
+.field textarea.field-calc:focus {
+  outline: none;
+  border-color: var(--line-strong);
+}
+
 .base-table-wrap .data-table tbody tr {
   cursor: pointer;
 }

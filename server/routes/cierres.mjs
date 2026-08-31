@@ -7,6 +7,7 @@ import {
   getUltimaFecha,
 } from '../build-cierre-vista.mjs';
 import { cierreFromRow, consolidadoFromRow, toSqlTime } from '../mappers.mjs';
+import { applyCierreFormulas } from '../cierre-calc.mjs';
 import { saveSimulacion } from '../simulacion-service.mjs';
 import { asDate, asInt, asNumber, asText, asTime, notFound } from '../validate.mjs';
 
@@ -177,13 +178,13 @@ cierresRouter.get('/:fecha', async (req, res) => {
 });
 
 cierresRouter.post('/', async (req, res) => {
-  const registro = await upsertCierre(parseCierre(req.body));
+  const registro = await upsertCierre(parseCierre(applyCierreFormulas(req.body)));
   res.status(201).json(registro);
 });
 
 cierresRouter.put('/:fecha', async (req, res) => {
   const fecha = asDate(req.params.fecha, 'fecha');
-  const registro = await upsertCierre(parseCierre({ ...req.body, fecha }));
+  const registro = await upsertCierre(parseCierre(applyCierreFormulas({ ...req.body, fecha })));
   res.json(registro);
 });
 

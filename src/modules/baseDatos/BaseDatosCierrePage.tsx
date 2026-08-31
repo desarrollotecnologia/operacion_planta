@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { MetricCard, PageHeader, Panel, formatDate, pct } from "../../components/ui";
 import type { NuevoRegistroInput, RegistroCierre } from "../../data/types";
+import { calcCierreDerived, pielesRotasFromRatio } from "../../lib/cierreCalc";
 import { useCierreStore } from "../../store/CierreStore";
 import "../../components/ui.css";
 import "./baseDatos.css";
@@ -35,16 +36,39 @@ const empty: NuevoRegistroInput = {
   observacion: "",
 };
 
-function registroToForm(r: RegistroCierre): NuevoRegistroInput {
+type FormState = NuevoRegistroInput & { totalPielesRotas: number };
+
+function registroToForm(r: RegistroCierre): FormState {
   const { id: _id, mes: _m, anio: _a, duracionMin: _d, ...rest } = r;
-  return { ...empty, ...rest };
+  return {
+    ...empty,
+    ...rest,
+    totalPielesRotas: pielesRotasFromRatio(rest.pieles, rest.totalBeneficio),
+  };
+}
+
+function CampoCalculado({ id, label, value, hint }: { id: string; label: string; value: string; hint?: string }) {
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        className="field-calc"
+        type="text"
+        readOnly
+        tabIndex={-1}
+        value={value}
+        title={hint ?? "Fórmula (como Excel)"}
+      />
+    </div>
+  );
 }
 
 export function BaseDatosCierrePage() {
   const { registros, upsertRegistro, selectedFecha, setSelectedFecha, cargando, guardando, error } =
     useCierreStore();
   const [mes, setMes] = useState("AGOSTO");
-  const [form, setForm] = useState<NuevoRegistroInput>(empty);
+  const [form, setForm] = useState<FormState>({ ...empty, totalPielesRotas: 0 });
   const [savedFlash, setSavedFlash] = useState(false);
 
   const selected = useMemo(
@@ -67,6 +91,26 @@ export function BaseDatosCierrePage() {
 
   const mesLabel = MESES.find((m) => m.codigo === mes)?.label ?? mes;
 
+  const calc = useMemo(
+    () =>
+      calcCierreDerived({
+        totalBeneficio: form.totalBeneficio,
+        horaInicio: form.horaInicio,
+        horaFin: form.horaFin,
+        tiempoParadasMin: form.tiempoParadasMin,
+        paradaProgramadaMin: form.paradaProgramadaMin,
+        totalPielesRotas: form.totalPielesRotas,
+      }),
+    [
+      form.totalBeneficio,
+      form.horaInicio,
+      form.horaFin,
+      form.tiempoParadasMin,
+      form.paradaProgramadaMin,
+      form.totalPielesRotas,
+    ],
+  );
+
   useEffect(() => {
     const r = registros.find((x) => x.fecha === selectedFecha);
     if (r) {
@@ -84,14 +128,25 @@ export function BaseDatosCierrePage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!form.fecha) return;
-    const guardado = await upsertRegistro(form);
+    const { totalPielesRotas: _t, ...rest } = form;
+    const payload: NuevoRegistroInput & { totalPielesRotas: number } = {
+      ...rest,
+      totalPielesRotas: form.totalPielesRotas,
+      horasLaboradas: calc.horasLaboradas,
+      productividad: calc.productividad,
+      velocidadNeta: calc.velocidadNeta,
+      velocidadLinea: calc.velocidadLinea,
+      velocidadBruta: calc.velocidadBruta,
+      pieles: calc.pieles,
+    };
+    const guardado = await upsertRegistro(payload);
     if (!guardado) return;
     setSavedFlash(true);
     setMes(guardado.mes);
     window.setTimeout(() => setSavedFlash(false), 1800);
   }
 
-  const setNum = (key: keyof NuevoRegistroInput, raw: string) => {
+  const setNum = (key: keyof FormState, raw: string) => {
     const n = raw === "" ? 0 : Number(raw);
     setForm((f) => ({ ...f, [key]: Number.isFinite(n) ? n : 0 }));
   };
@@ -132,13 +187,26 @@ export function BaseDatosCierrePage() {
         />
       </div>
 
-      <Panel title="Formulario del día" subtitle="Campos de BASE DE DATOS CIERRE · clic en la lista para editar" delay={0.12}>
+      <Panel
+        title="Formulario del día"
+        subtitle="Amarillo = editable · Blanco = fórmula (hoja BASE DE DATOS CIERRE del Excel)"
+        delay={0.12}
+      >
+        <div className="bd-legend">
+          <span className="bd-lg-input">
+            <i aria-hidden /> Amarillo — editable
+          </span>
+          <span className="bd-lg-calc">
+            <i aria-hidden /> Blanco — fórmula
+          </span>
+        </div>
         <form onSubmit={onSubmit}>
           <div className="form-grid">
             <div className="field">
               <label htmlFor="fecha">Fecha</label>
               <input
                 id="fecha"
+                className="field-input"
                 type="date"
                 required
                 value={form.fecha}
@@ -149,6 +217,7 @@ export function BaseDatosCierrePage() {
               <label htmlFor="beneficio">Total beneficio</label>
               <input
                 id="beneficio"
+                className="field-input"
                 type="number"
                 value={form.totalBeneficio || ""}
                 onChange={(e) => setNum("totalBeneficio", e.target.value)}
@@ -158,6 +227,7 @@ export function BaseDatosCierrePage() {
               <label htmlFor="hi">Hora inicio</label>
               <input
                 id="hi"
+                className="field-input"
                 type="time"
                 value={form.horaInicio}
                 onChange={(e) => setForm((f) => ({ ...f, horaInicio: e.target.value }))}
@@ -167,118 +237,23 @@ export function BaseDatosCierrePage() {
               <label htmlFor="hf">Hora fin</label>
               <input
                 id="hf"
+                className="field-input"
                 type="time"
                 value={form.horaFin}
                 onChange={(e) => setForm((f) => ({ ...f, horaFin: e.target.value }))}
               />
             </div>
-            <div className="field">
-              <label htmlFor="hl">Horas laboradas</label>
-              <input
-                id="hl"
-                type="number"
-                step="0.01"
-                value={form.horasLaboradas || ""}
-                onChange={(e) => setNum("horasLaboradas", e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="tard">Tardanza inicio (min)</label>
-              <input
-                id="tard"
-                type="number"
-                value={form.tardanzaInicio || ""}
-                onChange={(e) => setNum("tardanzaInicio", e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="prod">Productividad</label>
-              <input
-                id="prod"
-                type="number"
-                step="0.1"
-                value={form.productividad || ""}
-                onChange={(e) => setNum("productividad", e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="vb">Velocidad bruta</label>
-              <input
-                id="vb"
-                type="number"
-                step="0.1"
-                value={form.velocidadBruta || ""}
-                onChange={(e) => setNum("velocidadBruta", e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="vn">Velocidad neta / línea</label>
-              <input
-                id="vn"
-                type="number"
-                step="0.1"
-                value={form.velocidadNeta || ""}
-                onChange={(e) => {
-                  const n = e.target.value === "" ? 0 : Number(e.target.value);
-                  const v = Number.isFinite(n) ? n : 0;
-                  setForm((f) => ({ ...f, velocidadNeta: v, velocidadLinea: v }));
-                }}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="tol">Tolerancia cero</label>
-              <input
-                id="tol"
-                type="number"
-                step="0.0001"
-                value={form.toleranciaCero || ""}
-                onChange={(e) => setNum("toleranciaCero", e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="pieles">Pieles rotas</label>
-              <input
-                id="pieles"
-                type="number"
-                step="0.0001"
-                value={form.pieles || ""}
-                onChange={(e) => setNum("pieles", e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="pierna">Cortes en pierna</label>
-              <input
-                id="pierna"
-                type="number"
-                step="0.0001"
-                value={form.cortePierna || ""}
-                onChange={(e) => setNum("cortePierna", e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="sobre">Sobrebarriga rotas</label>
-              <input
-                id="sobre"
-                type="number"
-                step="0.0001"
-                value={form.sobrebarrigaRota || ""}
-                onChange={(e) => setNum("sobrebarrigaRota", e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="grasa">Cobertura grasa</label>
-              <input
-                id="grasa"
-                type="number"
-                step="0.0001"
-                value={form.coberturaGrasa || ""}
-                onChange={(e) => setNum("coberturaGrasa", e.target.value)}
-              />
-            </div>
+            <CampoCalculado
+              id="duracion"
+              label="Duración (min)"
+              value={String(calc.duracionMin)}
+              hint="(Hora fin − inicio) × 24 × 60"
+            />
             <div className="field">
               <label htmlFor="paradas">Tiempos improductivos (min)</label>
               <input
                 id="paradas"
+                className="field-input"
                 type="number"
                 value={form.tiempoParadasMin || ""}
                 onChange={(e) => setNum("tiempoParadasMin", e.target.value)}
@@ -288,15 +263,97 @@ export function BaseDatosCierrePage() {
               <label htmlFor="prog">Paradas programadas (min)</label>
               <input
                 id="prog"
+                className="field-input"
                 type="number"
                 value={form.paradaProgramadaMin || ""}
                 onChange={(e) => setNum("paradaProgramadaMin", e.target.value)}
               />
             </div>
+            <CampoCalculado
+              id="hl"
+              label="Horas laboradas"
+              value={calc.horasLaboradas.toFixed(2)}
+              hint="Duración (min) ÷ 60"
+            />
+            <div className="field">
+              <label htmlFor="tard">Tardanza inicio (min)</label>
+              <input
+                id="tard"
+                className="field-input"
+                type="number"
+                value={form.tardanzaInicio || ""}
+                onChange={(e) => setNum("tardanzaInicio", e.target.value)}
+              />
+            </div>
+            <CampoCalculado
+              id="prod"
+              label="Productividad"
+              value={calc.productividad.toFixed(2)}
+              hint="Beneficio ÷ ((duración − parada prog.) ÷ 60)"
+            />
+            <CampoCalculado
+              id="vn"
+              label="Velocidad neta / línea"
+              value={calc.velocidadNeta.toFixed(2)}
+              hint="Beneficio ÷ ((duración − parada prog. − improd.) ÷ 60)"
+            />
+            <CampoCalculado
+              id="vb"
+              label="Velocidad bruta"
+              value={calc.velocidadBruta.toFixed(2)}
+              hint="Beneficio ÷ horas laboradas"
+            />
+            <div className="field">
+              <label htmlFor="tol">Tolerancia cero</label>
+              <input
+                id="tol"
+                className="field-input"
+                type="number"
+                step="0.0001"
+                value={form.toleranciaCero || ""}
+                onChange={(e) => setNum("toleranciaCero", e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="pieles-count">Total pieles rotas (#)</label>
+              <input
+                id="pieles-count"
+                className="field-input"
+                type="number"
+                min={0}
+                value={form.totalPielesRotas || ""}
+                onChange={(e) => setNum("totalPielesRotas", e.target.value)}
+              />
+            </div>
+            <CampoCalculado
+              id="pieles"
+              label="Pieles (%)"
+              value={pct(calc.pieles)}
+              hint="Total pieles rotas ÷ beneficio"
+            />
+            <CampoCalculado
+              id="pierna"
+              label="Cortes en pierna"
+              value={form.cortePierna ? pct(form.cortePierna) : "—"}
+              hint="VLOOKUP hoja Liberación de canales"
+            />
+            <CampoCalculado
+              id="sobre"
+              label="Sobrebarriga rotas"
+              value={form.sobrebarrigaRota ? pct(form.sobrebarrigaRota) : "—"}
+              hint="VLOOKUP hoja Liberación de canales"
+            />
+            <CampoCalculado
+              id="grasa"
+              label="Cobertura grasa"
+              value={form.coberturaGrasa ? pct(form.coberturaGrasa) : "—"}
+              hint="VLOOKUP hoja Liberación de canales"
+            />
             <div className="field span-3">
               <label htmlFor="obs">Observación</label>
               <textarea
                 id="obs"
+                className="field-input"
                 rows={3}
                 value={form.observacion}
                 onChange={(e) => setForm((f) => ({ ...f, observacion: e.target.value }))}
@@ -310,7 +367,7 @@ export function BaseDatosCierrePage() {
             <button
               className="btn btn-ghost"
               type="button"
-              onClick={() => setForm({ ...empty, fecha: new Date().toISOString().slice(0, 10) })}
+              onClick={() => setForm({ ...empty, fecha: new Date().toISOString().slice(0, 10), totalPielesRotas: 0 })}
             >
               Nuevo vacío
             </button>
