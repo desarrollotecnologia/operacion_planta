@@ -98,7 +98,7 @@ export function CierreProcesoPage() {
       </div>
 
       {c.laborandoLinea.length > 0 && (
-        <Panel title="Laborando · detalle" delay={0.28}>
+        <Panel title="Operatividad línea beneficio" delay={0.28}>
           <table className="data-table">
             <thead>
               <tr>
