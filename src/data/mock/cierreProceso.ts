@@ -16,6 +16,7 @@ export type OperatividadRow = {
 export type LaborandoRow = {
   item: number;
   criterio: string;
+  estadoCodigo: string;
   personas: number;
   pct: number;
   colaboradores: string;
@@ -45,6 +46,21 @@ export type CierreProcesoData = {
   observaciones: string;
   operatividadLinea: OperatividadRow[];
   laborandoLinea: LaborandoRow[];
+  totalesLinea: { totalPersonas: number; ausentismoPct: number };
+  laborandoPccom: LaborandoRow[];
+  totalesPccom: { totalPersonas: number; ausentismoPct: number };
+  pccom: {
+    totalBeneficio: number;
+    horaInicioCabezas: string;
+    horaUltimaViscera: string;
+    totalParosHr: number;
+    duracionProcesoHr: number;
+    rendimientoBruto: number | null;
+    rendimientoNeto: number | null;
+    paradasProgramadasMin: number;
+    tiemposImproductivosMin: number;
+    novedades: string;
+  };
   operatividadPccom: OperatividadRow[];
 };
 
@@ -82,42 +98,28 @@ export const cierreProcesoMock: CierreProcesoData = {
     { criterio: "INCAPACIDAD LARGAS", real: 0, pct: 0, dia: 2, diaPct: 0, dif: 0 },
   ],
   laborandoLinea: [
-    {
-      item: 1,
-      criterio: "LABORANDO",
-      personas: 48,
-      pct: 0.8,
-      colaboradores: "",
-    },
-    {
-      item: 2,
-      criterio: "VACACIONES",
-      personas: 4,
-      pct: 0.067,
-      colaboradores: "BARAJAS EULISIS / PABON ANDERSON / QUINTERO GERSON / ROMERO ARNOL",
-    },
-    {
-      item: 3,
-      criterio: "INCAPACIDAD",
-      personas: 4,
-      pct: 0.067,
-      colaboradores: "BENITEZ YOSNEIDER / JOAN CARVAJAL / JAIMES JHON / PAJARO YAIR",
-    },
-    {
-      item: 4,
-      criterio: "REUBICADO",
-      personas: 2,
-      pct: 0.033,
-      colaboradores: "CANCINO JAVIER / MORALES EFRAIN",
-    },
-    {
-      item: 5,
-      criterio: "RENUNCIA",
-      personas: 2,
-      pct: 0.033,
-      colaboradores: "SUAREZ ANDREY / YEDINSON GERES",
-    },
+    { item: 1, criterio: "LABORANDO", estadoCodigo: "LABORANDO", personas: 48, pct: 0.8, colaboradores: "" },
+    { item: 2, criterio: "VACACIONES", estadoCodigo: "VACACIONES", personas: 4, pct: 0.067, colaboradores: "Gerson Quintero" },
+    { item: 3, criterio: "INCAPACIDAD", estadoCodigo: "INCAPACIDAD", personas: 4, pct: 0.067, colaboradores: "Yair Pajaro" },
   ],
+  totalesLinea: { totalPersonas: 60, ausentismoPct: 0.15 },
+  laborandoPccom: [
+    { item: 1, criterio: "LABORANDO", estadoCodigo: "LABORANDO", personas: 48, pct: 0.92, colaboradores: "" },
+    { item: 2, criterio: "INCAPACIDAD", estadoCodigo: "INCAPACIDAD", personas: 1, pct: 0.02, colaboradores: "Daniel Agudelo" },
+  ],
+  totalesPccom: { totalPersonas: 52, ausentismoPct: 0.08 },
+  pccom: {
+    totalBeneficio: 306,
+    horaInicioCabezas: "14:00",
+    horaUltimaViscera: "20:18",
+    totalParosHr: 1.02,
+    duracionProcesoHr: 6.3,
+    rendimientoBruto: 60,
+    rendimientoNeto: 67,
+    paradasProgramadasMin: 30,
+    tiemposImproductivosMin: 61,
+    novedades: "",
+  },
   operatividadPccom: [
     { criterio: "LIDER/APOYO", real: 2, pct: 0.0392, dia: 2, diaPct: 0.0392, dif: 0 },
     { criterio: "OPERACION", real: 41, pct: 0.8039, dia: 39, diaPct: 0.7647, dif: -0.0392 },

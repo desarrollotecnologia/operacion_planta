@@ -1,25 +1,180 @@
-import type { CierreProcesoData } from "../../data/types";
+import type { CierrePccomIndicadores, CierreProcesoData, OperatividadBeneficioRow, OperatividadTotales } from "../../data/types";
 import { Badge, MetricCard, PageHeader, Panel, formatDate, pct } from "../../components/ui";
 import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { useCierreStore } from "../../store/CierreStore";
 import "../../components/ui.css";
+import "./cierreProceso.css";
 
-function indicadoresTurno(c: CierreProcesoData) {
+function indicadoresLinea(c: CierreProcesoData) {
   return [
+    ["Total de beneficio", String(c.totalBeneficio)],
     ["Hora de inicio", c.horaInicio],
     ["Hora fin", c.horaFin],
-    ["Horas laboradas", c.horasLaboradas.toFixed(2)],
-    ["Tardanza inicio", `${c.tardanzaInicio} min`],
+    ["Indicador O.E.E (mes)", pct(c.oeeMes)],
+    ["Indicador O.E.E (día)", pct(c.oeeDia)],
+    ["Velocidad línea de beneficio", c.velocidadLinea.toFixed(1)],
+    ["Horas laboradas", c.horasLaboradas.toFixed(1)],
+    ["Tardanza de inicio", String(c.tardanzaInicio)],
     ["Productividad", c.productividad.toFixed(1)],
-    ["Velocidad bruta", `${c.velocidadBruta.toFixed(1)} r/h`],
+    ["Velocidad neta", c.velocidadNeta.toFixed(1)],
+    ["Velocidad bruta", c.velocidadBruta.toFixed(1)],
     ["Tolerancia cero", pct(c.toleranciaCero)],
-    ["Pieles rotas", pct(c.pieles)],
-    ["Cortes en pierna", pct(c.cortePierna)],
-    ["Sobrebarriga rotas", pct(c.sobrebarrigaRota)],
+    ["Pieles", pct(c.pieles)],
+    ["Corte en pierna", pct(c.cortePierna)],
+    ["Sobrebarrigas rotas", pct(c.sobrebarrigaRota)],
     ["Cobertura grasa", pct(c.coberturaGrasa)],
-    ["Paradas programadas minutos", `${c.paradasProgramadasMin} min`],
-    ["Tiempos improductivos", `${c.tiemposImproductivosMin} min`],
+    ["Paradas programadas (min)", String(c.paradasProgramadasMin)],
+    ["Tiempos improductivos (min)", String(c.tiemposImproductivosMin)],
   ] as const;
+}
+
+function indicadoresPccom(p: CierrePccomIndicadores) {
+  return [
+    ["Total de beneficio", String(p.totalBeneficio)],
+    ["Hora inicio cabezas", p.horaInicioCabezas],
+    ["Hora última víscera amarrada", p.horaUltimaViscera],
+    ["Total paros (hr)", p.totalParosHr.toFixed(2)],
+    ["Duración proceso (hr)", p.duracionProcesoHr.toFixed(2)],
+    ["Rendimiento bruto (visceras/hr)", p.rendimientoBruto?.toFixed(0) ?? "—"],
+    ["Rendimiento neto (visceras/hr)", p.rendimientoNeto?.toFixed(0) ?? "—"],
+    ["Minutos paros programados", String(p.paradasProgramadasMin)],
+    ["Minutos paros no programados", String(p.tiemposImproductivosMin)],
+    ["Novedades", p.novedades || "—"],
+  ] as const;
+}
+
+function TablaIndicadores({ filas }: { filas: readonly (readonly [string, string])[] }) {
+  return (
+    <table className="data-table">
+      <tbody>
+        {filas.map(([k, v]) => (
+          <tr key={k}>
+            <td>{k}</td>
+            <td>
+              <strong>{v}</strong>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function TablaOperatividad({
+  titulo,
+  filas,
+  totales,
+}: {
+  titulo: string;
+  filas: OperatividadBeneficioRow[];
+  totales: OperatividadTotales;
+}) {
+  if (!filas.length) {
+    return (
+      <Panel title={titulo}>
+        <p className="note-block">Sin datos de personal para esta área. Regístrelos en Asistencia diaria.</p>
+      </Panel>
+    );
+  }
+
+  return (
+    <Panel title={titulo}>
+      <div style={{ overflowX: "auto" }}>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Criterio</th>
+              <th># Personas</th>
+              <th>% de part.</th>
+              <th>Colaborador</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filas.map((r) => (
+              <tr key={`${r.item}-${r.criterio}`}>
+                <td>{r.item}</td>
+                <td>
+                  {r.estadoCodigo === "INCAPACIDAD" ? (
+                    <Badge tone="danger">{r.criterio}</Badge>
+                  ) : (
+                    r.criterio
+                  )}
+                </td>
+                <td>{r.personas}</td>
+                <td>{pct(r.pct)}</td>
+                <td>{r.colaboradores || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="cierre-op-foot">
+        <span>
+          Total {totales.totalPersonas}, 100%
+        </span>
+        <span className="ausentismo">Total ausentismo {pct(totales.ausentismoPct)}</span>
+      </div>
+    </Panel>
+  );
+}
+
+function SeccionCierre({
+  titulo,
+  subtitulo,
+  indicadores,
+  observaciones,
+  operatividadTitulo,
+  operatividadFilas,
+  operatividadTotales,
+}: {
+  titulo: string;
+  subtitulo: string;
+  indicadores: readonly (readonly [string, string])[];
+  observaciones?: { fallos?: string; proceso?: string };
+  operatividadTitulo: string;
+  operatividadFilas: OperatividadBeneficioRow[];
+  operatividadTotales: OperatividadTotales;
+}) {
+  return (
+    <section className="cierre-seccion">
+      <div className="cierre-seccion-head">
+        <h2>{titulo}</h2>
+        <p>{subtitulo}</p>
+      </div>
+
+      <div className="cierre-bloque-grid">
+        <Panel title="Indicadores">
+          <TablaIndicadores filas={indicadores} />
+        </Panel>
+
+        {(observaciones?.fallos || observaciones?.proceso) && (
+          <Panel title="Observaciones">
+            {observaciones.fallos ? (
+              <p className="note-block">
+                <strong>Fallos en maquinaria</strong>
+                <br />
+                {observaciones.fallos}
+              </p>
+            ) : null}
+            {observaciones.proceso ? (
+              <p className="note-block" style={{ marginTop: observaciones.fallos ? "0.75rem" : 0 }}>
+                <strong>Observaciones de proceso</strong>
+                <br />
+                {observaciones.proceso}
+              </p>
+            ) : null}
+          </Panel>
+        )}
+      </div>
+
+      <TablaOperatividad
+        titulo={operatividadTitulo}
+        filas={operatividadFilas}
+        totales={operatividadTotales}
+      />
+    </section>
+  );
 }
 
 export function CierreProcesoPage() {
@@ -39,7 +194,7 @@ export function CierreProcesoPage() {
       <PageHeader
         eyebrow="Cierre de proceso"
         title="Cierre de proceso"
-        description="Tablero del turno: indicadores de beneficio, OEE y calidad."
+        description={`Resumen del ${formatDate(c.fecha)} · línea de beneficio y productos cárnicos COM.`}
       />
 
       <div className="metrics-grid">
@@ -61,74 +216,24 @@ export function CierreProcesoPage() {
         <MetricCard label="OEE día" value={pct(c.oeeDia)} delay={0.2} />
       </div>
 
-      <div className="stack-2">
-        <Panel title="Indicadores del turno" delay={0.18}>
-          <table className="data-table">
-            <tbody>
-              {indicadoresTurno(c).map(([k, v]) => (
-                <tr key={String(k)}>
-                  <td>{k}</td>
-                  <td>
-                    <strong>{v}</strong>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Panel>
+      <SeccionCierre
+        titulo="Cierre de proceso · Línea de beneficio"
+        subtitulo="Indicadores del turno y operatividad de personal de línea"
+        indicadores={indicadoresLinea(c)}
+        observaciones={{ fallos: c.fallosMaquinaria, proceso: c.observaciones }}
+        operatividadTitulo="Operatividad línea beneficio"
+        operatividadFilas={c.laborandoLinea}
+        operatividadTotales={c.totalesLinea}
+      />
 
-        {(c.fallosMaquinaria || c.observaciones) && (
-          <Panel title="Observaciones" delay={0.22}>
-            {c.fallosMaquinaria ? (
-              <p className="note-block">
-                <strong>Fallos maquinaria</strong>
-                <br />
-                {c.fallosMaquinaria}
-              </p>
-            ) : null}
-            {c.observaciones ? (
-              <p className="note-block" style={{ marginTop: c.fallosMaquinaria ? "0.75rem" : 0 }}>
-                <strong>Proceso</strong>
-                <br />
-                {c.observaciones}
-              </p>
-            ) : null}
-          </Panel>
-        )}
-      </div>
-
-      {c.laborandoLinea.length > 0 && (
-        <Panel title="Operatividad línea beneficio" delay={0.28}>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Criterio</th>
-                <th>Personas</th>
-                <th>%</th>
-                <th>Colaboradores</th>
-              </tr>
-            </thead>
-            <tbody>
-              {c.laborandoLinea.map((r) => (
-                <tr key={r.item}>
-                  <td>{r.item}</td>
-                  <td>
-                    {r.criterio === "INCAPACIDAD" ? (
-                      <Badge tone="danger">{r.criterio}</Badge>
-                    ) : (
-                      r.criterio
-                    )}
-                  </td>
-                  <td>{r.personas}</td>
-                  <td>{pct(r.pct)}</td>
-                  <td>{r.colaboradores || "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Panel>
-      )}
+      <SeccionCierre
+        titulo="Cierre de proceso · Productos cárnicos COM"
+        subtitulo="Indicadores de vísceras y operatividad de personal PCCOM"
+        indicadores={indicadoresPccom(c.pccom)}
+        operatividadTitulo="Operatividad productos cárnicos comestibles"
+        operatividadFilas={c.laborandoPccom}
+        operatividadTotales={c.totalesPccom}
+      />
     </div>
   );
 }

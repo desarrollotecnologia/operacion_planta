@@ -3,6 +3,7 @@
  */
 import { query, queryOne } from './db.mjs';
 import { cierreFromRow } from './mappers.mjs';
+import { colaboradoresCortos } from './nombres.mjs';
 import { calcSimulacion } from './simulacion-calc.mjs';
 
 const CIERRE_COLS = `
@@ -114,6 +115,58 @@ function buildOperatividad(resumenRows, base) {
   return ORDEN_OPERATIVIDAD.map((c) => byCriterio.get(c)).filter((r) => r.real > 0 || r.dia > 0);
 }
 
+const NO_MUESTRA_NOMBRES = new Set(['LABORANDO', 'DOMINGO_FESTIVO']);
+
+async function fetchOperatividadArea(fecha, areaCodigo) {
+  const rows = await query(
+    `SELECT v.estado_codigo, v.estado_nombre, v.cantidad, v.colaboradores
+       FROM vw_resumen_novedades_dia v
+       JOIN cat_area a ON a.id = v.area_id
+      WHERE v.fecha = ? AND a.codigo = ?
+      ORDER BY
+        CASE WHEN v.estado_codigo = 'LABORANDO' THEN 0 ELSE 1 END,
+        v.estado_nombre`,
+    [fecha, areaCodigo],
+  );
+
+  let source = rows;
+  if (!source.length) {
+    source = await query(
+      `SELECT e.codigo AS estado_codigo, e.nombre AS estado_nombre,
+              n.personas AS cantidad, n.colaboradores
+         FROM novedad_resumen_dia n
+         JOIN cierre_diario c ON c.id = n.cierre_id
+         JOIN cat_area a ON a.id = n.area_id
+         JOIN cat_estado_novedad e ON e.id = n.estado_id
+        WHERE c.fecha = ? AND a.codigo = ?
+        ORDER BY n.item`,
+      [fecha, areaCodigo],
+    );
+  }
+
+  const total = source.reduce((acc, r) => acc + Number(r.cantidad), 0) || 1;
+  const ausentismo = source
+    .filter((r) => !NO_MUESTRA_NOMBRES.has(r.estado_codigo))
+    .reduce((acc, r) => acc + Number(r.cantidad), 0);
+
+  const filas = source.map((r, idx) => ({
+    item: idx + 1,
+    criterio: r.estado_nombre.toUpperCase(),
+    estadoCodigo: r.estado_codigo,
+    personas: Number(r.cantidad),
+    pct: Number(r.cantidad) / total,
+    colaboradores: NO_MUESTRA_NOMBRES.has(r.estado_codigo)
+      ? ''
+      : colaboradoresCortos(r.colaboradores ?? ''),
+  }));
+
+  return {
+    filas,
+    totalPersonas: total,
+    ausentismoPct: total > 0 ? ausentismo / total : 0,
+  };
+}
+
 export async function getSimulacion(fecha) {
   const cierre = await queryOne(
     `SELECT id, fecha, total_beneficio, hora_inicio, hora_fin,
@@ -168,13 +221,14 @@ export async function getCierreProceso(fecha) {
   const base = personal?.personal_contratado || personal?.personal_asignado || 60;
   const operatividadLinea = buildOperatividad(resumenRows, base);
 
-  const laborandoLinea = resumenRows.map((r) => ({
-    item: Number(r.item),
-    criterio: r.estado_nombre.toUpperCase(),
-    personas: Number(r.personas),
-    pct: Number(r.pct),
-    colaboradores: r.colaboradores ?? '',
-  }));
+  const lineaOp = await fetchOperatividadArea(fecha, 'LINEA');
+  const pccomOp = await fetchOperatividadArea(fecha, 'PCCOM');
+
+  const consolidado = await queryOne(
+    `SELECT total_paros_hr, duracion_hr, rendimiento_bruto, rendimiento_neto, novedades_texto
+       FROM vw_consolidado_cierre WHERE fecha = ?`,
+    [fecha],
+  );
 
   return {
     fecha: cierre.fecha,
@@ -199,7 +253,28 @@ export async function getCierreProceso(fecha) {
     fallosMaquinaria: detalle?.fallos_maquinaria ?? '',
     observaciones: detalle?.observaciones_proceso ?? cierre.observacion,
     operatividadLinea,
-    laborandoLinea,
+    laborandoLinea: lineaOp.filas,
+    totalesLinea: {
+      totalPersonas: lineaOp.totalPersonas,
+      ausentismoPct: lineaOp.ausentismoPct,
+    },
+    laborandoPccom: pccomOp.filas,
+    totalesPccom: {
+      totalPersonas: pccomOp.totalPersonas,
+      ausentismoPct: pccomOp.ausentismoPct,
+    },
+    pccom: {
+      totalBeneficio: cierre.totalBeneficio,
+      horaInicioCabezas: cierre.horaInicio,
+      horaUltimaViscera: cierre.horaFin,
+      totalParosHr: consolidado?.total_paros_hr === null ? 0 : Number(consolidado?.total_paros_hr ?? 0),
+      duracionProcesoHr: consolidado?.duracion_hr === null ? cierre.horasLaboradas : Number(consolidado?.duracion_hr ?? cierre.horasLaboradas),
+      rendimientoBruto: consolidado?.rendimiento_bruto === null ? null : Number(consolidado.rendimiento_bruto),
+      rendimientoNeto: consolidado?.rendimiento_neto === null ? null : Number(consolidado.rendimiento_neto),
+      paradasProgramadasMin: cierre.paradaProgramadaMin,
+      tiemposImproductivosMin: cierre.tiempoParadasMin,
+      novedades: consolidado?.novedades_texto ?? cierre.observacion,
+    },
     operatividadPccom: [],
   };
 }

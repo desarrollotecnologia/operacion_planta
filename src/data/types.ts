@@ -101,6 +101,33 @@ export type OperatividadRow = {
   dif: number;
 };
 
+export type OperatividadBeneficioRow = {
+  item: number;
+  criterio: string;
+  estadoCodigo: string;
+  personas: number;
+  pct: number;
+  colaboradores: string;
+};
+
+export type OperatividadTotales = {
+  totalPersonas: number;
+  ausentismoPct: number;
+};
+
+export type CierrePccomIndicadores = {
+  totalBeneficio: number;
+  horaInicioCabezas: string;
+  horaUltimaViscera: string;
+  totalParosHr: number;
+  duracionProcesoHr: number;
+  rendimientoBruto: number | null;
+  rendimientoNeto: number | null;
+  paradasProgramadasMin: number;
+  tiemposImproductivosMin: number;
+  novedades: string;
+};
+
 export type CierreProcesoData = {
   fecha: string;
   totalBeneficio: number;
@@ -124,13 +151,11 @@ export type CierreProcesoData = {
   fallosMaquinaria: string;
   observaciones: string;
   operatividadLinea: OperatividadRow[];
-  laborandoLinea: {
-    item: number;
-    criterio: string;
-    personas: number;
-    pct: number;
-    colaboradores: string;
-  }[];
+  laborandoLinea: OperatividadBeneficioRow[];
+  totalesLinea: OperatividadTotales;
+  laborandoPccom: OperatividadBeneficioRow[];
+  totalesPccom: OperatividadTotales;
+  pccom: CierrePccomIndicadores;
   operatividadPccom: OperatividadRow[];
 };
 
