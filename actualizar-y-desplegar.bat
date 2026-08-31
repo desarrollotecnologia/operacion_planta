@@ -55,20 +55,45 @@ if errorlevel 1 (
   goto :fail
 )
 
+rem Va antes de la revision porque esta necesita el conector de MySQL, que en un
+rem clon nuevo aun no estaria instalado. Instalar no afecta al servidor en marcha.
 echo.
 echo [2/6] Instalando dependencias ^(npm install^)...
 call npm install
 if errorlevel 1 goto :fail
 
+rem La revision va ANTES de compilar y reiniciar: si el codigo nuevo espera
+rem columnas que la base aun no tiene, desplegarlo deja el tablero con error 500.
+rem Por eso aqui se detiene en vez de avisar al final, cuando ya seria tarde.
 echo.
-echo [3/6] Compilando frontend ^(npm run build^)...
+echo [3/6] Revisando migraciones de base de datos...
+rem 0 = al dia, 1 = faltan migraciones, 2 = no se pudo comprobar.
+rem Se evalua el codigo mayor primero: "errorlevel N" significa "N o mas".
+node "%~dp0server\check-migraciones.mjs"
+if errorlevel 2 (
+  echo.
+  echo AVISO: no se pudo revisar el estado de la base de datos.
+  echo El despliegue continua, pero verifique las migraciones a mano.
+  echo.
+) else if errorlevel 1 (
+  echo.
+  echo ============================================================
+  echo   DESPLIEGUE DETENIDO: faltan migraciones de base de datos.
+  echo   Aplique las indicadas arriba y vuelva a ejecutar este .bat.
+  echo   No se toco el servidor: el tablero sigue funcionando.
+  echo ============================================================
+  goto :fail
+)
+
+echo.
+echo [4/6] Compilando frontend ^(npm run build^)...
 call npm run build
 if errorlevel 1 goto :fail
 
 if not exist "logs" mkdir "logs"
 
 echo.
-echo [4/6] Reiniciando servidor en puerto %PORT%...
+echo [5/6] Reiniciando servidor en puerto %PORT%...
 if not exist "%~dp0server\reiniciar-servidor.ps1" (
   echo ERROR: falta server\reiniciar-servidor.ps1
   goto :fail
@@ -80,39 +105,13 @@ if errorlevel 1 (
 )
 
 echo.
-echo [5/6] Verificando API...
+echo [6/6] Verificando API...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$ok=$false; for($i=1;$i -le 15;$i++){ Start-Sleep 1; try { $r=Invoke-WebRequest 'http://localhost:%PORT%/api/health' -UseBasicParsing -TimeoutSec 3; if($r.StatusCode -eq 200){ $ok=$true; break } } catch {} }; if($ok){ Write-Host '  [OK] /api/health responde.' -ForegroundColor Green; try { $j=$r.Content | ConvertFrom-Json; Write-Host ('  Base: ' + $j.db + '  MySQL: ' + $j.mysql) } catch {} } else { Write-Host '  [AVISO] El servidor no respondio a tiempo. Revise logs\tablero.log' -ForegroundColor Yellow; exit 1 }"
 if errorlevel 1 (
   echo.
   echo El despliegue termino pero la verificacion fallo.
   goto :fail
-)
-
-echo.
-echo [6/6] Revisando migraciones de base de datos...
-rem 0 = al dia, 1 = faltan migraciones, 2 = no se pudo comprobar.
-rem Se evalua el codigo mayor primero: "errorlevel N" significa "N o mas".
-node "%~dp0server\check-migraciones.mjs"
-if errorlevel 2 (
-  echo ============================================================
-  echo   Despliegue completado, pero no se pudo revisar la base.
-  echo   Verifique el estado de las migraciones a mano.
-  echo   Local: http://localhost:%PORT%
-  echo ============================================================
-  echo.
-  pause
-  exit /b 0
-)
-if errorlevel 1 (
-  echo ============================================================
-  echo   Despliegue completado, PERO FALTAN MIGRACIONES.
-  echo   Aplique las indicadas arriba antes de usar el tablero.
-  echo   Local: http://localhost:%PORT%
-  echo ============================================================
-  echo.
-  pause
-  exit /b 0
 )
 
 echo.
