@@ -8,7 +8,7 @@ export function PageHeader({
   description,
   action,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description: string;
   action?: ReactNode;
@@ -21,7 +21,7 @@ export function PageHeader({
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
     >
       <div>
-        <p className="eyebrow">{eyebrow}</p>
+        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h1>{title}</h1>
         <p className="page-desc">{description}</p>
       </div>

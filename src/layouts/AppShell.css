@@ -141,10 +141,14 @@
   gap: 0.75rem;
 }
 
-.fecha-select {
+.fecha-picker {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.fecha-picker-label {
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--muted);
@@ -152,14 +156,100 @@
   letter-spacing: 0.04em;
 }
 
-.fecha-select select {
-  min-width: 9.5rem;
-  padding: 0.45rem 0.65rem;
-  border-radius: 8px;
+.fecha-picker-control {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.fecha-picker-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 15rem;
   border: 1px solid var(--line);
+  border-radius: 10px;
   background: white;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.fecha-picker-field:has(.fecha-picker-input:disabled) {
+  cursor: not-allowed;
+}
+
+.fecha-picker-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fecha-picker-display {
+  flex: 1;
+  padding: 0.5rem 0.35rem 0.5rem 0.75rem;
+  font-size: 0.88rem;
+  font-weight: 600;
   color: var(--brand-950);
-  font-size: 0.85rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.fecha-picker-cal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: none;
+  border-left: 1px solid var(--line);
+  background: color-mix(in srgb, var(--brand-700) 6%, white);
+  color: var(--brand-700);
+  cursor: pointer;
+  z-index: 3;
+  flex-shrink: 0;
+}
+
+.fecha-picker-cal:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--brand-700) 12%, white);
+}
+
+.fecha-picker-cal:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fecha-picker-nav {
+  width: 2rem;
+  height: 2.35rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--brand-800, var(--brand-700));
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fecha-picker-nav:hover:not(:disabled) {
+  background: var(--brand-50, #eef4fc);
+  border-color: color-mix(in srgb, var(--brand-600) 35%, var(--line));
+}
+
+.fecha-picker-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fecha-picker-hint {
+  font-size: 0.72rem;
+  color: var(--warn, #b45309);
+}
+
+.fecha-picker.is-disabled .fecha-picker-field {
+  opacity: 0.65;
 }
 
 .top-pill {

@@ -81,9 +81,8 @@ export function SimulacionPage() {
   return (
     <div className="sim-page">
       <PageHeader
-        eyebrow="Simulación"
-        title="Hoja SIMULACION"
-        description={`Cierre del ${selectedFecha}. Disposición igual al Excel: fila 3 títulos, fila 4 valores. Verde = editable, gris = fórmula.`}
+        title="Simulación"
+        description={`Cierre del ${selectedFecha}. Verde = editable, gris = fórmula.`}
       />
 
       <div className="sim-legend">

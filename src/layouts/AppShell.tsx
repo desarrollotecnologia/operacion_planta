@@ -1,11 +1,13 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
+import { FechaCierrePicker } from "../components/FechaCierrePicker";
 import { NAV_ITEMS } from "../data/nav";
 import { useCierreStore } from "../store/CierreStore";
 import "./AppShell.css";
 
 export function AppShell() {
-  const { registros, selectedFecha, setSelectedFecha } = useCierreStore();
+  const { registros, selectedFecha, setSelectedFecha, cargando } = useCierreStore();
+  const fechas = registros.map((r) => r.fecha);
 
   return (
     <div className="shell">
@@ -44,20 +46,12 @@ export function AppShell() {
             <p className="top-sub">Tablero de cierre diario · Colbeef</p>
           </motion.div>
           <div className="top-actions">
-            <label className="fecha-select">
-              <span>Fecha cierre</span>
-              <select
-                value={selectedFecha}
-                onChange={(e) => setSelectedFecha(e.target.value)}
-                disabled={!registros.length}
-              >
-                {registros.map((r) => (
-                  <option key={r.fecha} value={r.fecha}>
-                    {r.fecha}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <FechaCierrePicker
+              value={selectedFecha}
+              fechas={fechas}
+              onChange={setSelectedFecha}
+              disabled={cargando || !fechas.length}
+            />
           </div>
         </header>
         <main className="shell-content">
