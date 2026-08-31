@@ -88,6 +88,38 @@ export function calcSimulacion(input: SimulacionInput): SimulacionCalculada {
   };
 }
 
+/** Filas 8–9 y 11–13 del Excel (proyección # reses y topes de tolerancia). */
+export type SimulacionBloques = {
+  referenciaReses: number;
+  resesX4: number;
+  resesX2: number;
+  toleranciaPct: [number, number, number];
+  toleranciaTope: [number, number, number];
+};
+
+const TOLERANCIA_FACTORES: [number, number, number] = [0.007, 0.015, 0.01];
+const TOLERANCIA_PCT: [number, number, number] = [0.7, 1.5, 1.0];
+
+export function calcBloquesSimulacion(reses: number): SimulacionBloques {
+  const resesX4 = reses * 4;
+  const resesX2 = reses * 2;
+  return {
+    referenciaReses: reses,
+    resesX4,
+    resesX2,
+    toleranciaPct: TOLERANCIA_PCT,
+    toleranciaTope: [
+      Math.round(resesX4 * TOLERANCIA_FACTORES[0]),
+      Math.round(resesX2 * TOLERANCIA_FACTORES[1]),
+      Math.round(resesX2 * TOLERANCIA_FACTORES[2]),
+    ],
+  };
+}
+
+export function fmtPctExcel(n: number) {
+  return n.toLocaleString("es-CO", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
 export const SIMULACION_VACIA: SimulacionInput = {
   reses: 0,
   velocidadBruta: 75,

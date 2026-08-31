@@ -3,7 +3,7 @@ import { PageHeader } from "../../components/ui";
 import { useCierreStore } from "../../store/CierreStore";
 import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { api, ApiError } from "../../lib/api";
-import { calcSimulacion, SIMULACION_VACIA } from "../../lib/simulacionCalc";
+import { calcBloquesSimulacion, calcSimulacion, fmtPctExcel, SIMULACION_VACIA } from "../../lib/simulacionCalc";
 import type { SimulacionInput } from "../../data/types";
 import "../../components/ui.css";
 import "./simulacion.css";
@@ -35,6 +35,7 @@ export function SimulacionPage() {
   }, [remota]);
 
   const calc = useMemo(() => calcSimulacion(form), [form]);
+  const bloques = useMemo(() => calcBloquesSimulacion(calc.reses), [calc.reses]);
 
   const setNum = useCallback((key: NumKey, raw: string) => {
     const n = raw === "" ? 0 : Number(raw);
@@ -284,6 +285,67 @@ export function SimulacionPage() {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <p className="sim-block-label">Proyección y tolerancias (filas 8–13)</p>
+
+        <div className="sim-extra-blocks">
+          <div className="sim-sheet sim-sheet-inline">
+            <table className="sim-proy-grid" aria-label="Proyección # reses">
+              <tbody>
+                <tr>
+                  <td className="sim-proy-empty" />
+                  <td className="sim-ref sim-proy-ref" title="G8 = C4 (# RESES)">
+                    {bloques.referenciaReses}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="sim-proy-val" title="F9 = G8 × 4">
+                    {bloques.resesX4}
+                  </td>
+                  <td className="sim-proy-val" title="G9 = G8 × 2">
+                    {bloques.resesX2}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="sim-sheet sim-sheet-inline">
+            <table className="sim-tol-grid" aria-label="Tolerancias de calidad">
+              <thead>
+                <tr>
+                  <th>TOLERANCIA</th>
+                  <th>PIELES/ C. GRASA</th>
+                  <th>C.PIERNA/S.ROTA</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="sim-tol-pct" title="F12 = (F13/F9)×100">
+                    {fmtPctExcel(bloques.toleranciaPct[0])}
+                  </td>
+                  <td className="sim-tol-pct" title="G12 = (G13/G9)×100">
+                    {fmtPctExcel(bloques.toleranciaPct[1])}
+                  </td>
+                  <td className="sim-tol-pct" title="H12 = (H13/G9)×100">
+                    {fmtPctExcel(bloques.toleranciaPct[2])}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="sim-tol-tope" title="F13 = F9 × 0,007">
+                    {bloques.toleranciaTope[0]}
+                  </td>
+                  <td className="sim-tol-tope" title="G13 = G9 × 0,015">
+                    {bloques.toleranciaTope[1]}
+                  </td>
+                  <td className="sim-tol-tope" title="H13 = G9 × 0,01">
+                    {bloques.toleranciaTope[2]}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="sim-actions">

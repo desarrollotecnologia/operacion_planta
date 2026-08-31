@@ -211,6 +211,82 @@
   color: var(--danger, #c62828);
 }
 
+.sim-extra-blocks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.sim-sheet-inline {
+  padding: 0;
+  overflow: visible;
+}
+
+.sim-proy-grid {
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.sim-proy-grid td {
+  border: 2px solid #1a1a1a;
+  min-width: 4.5rem;
+  height: 2.1rem;
+  padding: 0.35rem 0.55rem;
+  text-align: center;
+  vertical-align: middle;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-proy-empty {
+  border: none !important;
+  background: transparent;
+}
+
+.sim-proy-ref {
+  background: var(--sim-yellow);
+  text-align: right;
+  font-weight: 700;
+}
+
+.sim-proy-val {
+  background: white;
+}
+
+.sim-tol-grid {
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  min-width: 320px;
+}
+
+.sim-tol-grid th,
+.sim-tol-grid td {
+  border: 1px solid #1a1a1a;
+  padding: 0.4rem 0.55rem;
+  text-align: center;
+  vertical-align: middle;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-tol-grid th {
+  background: var(--sim-green);
+  font-size: 0.62rem;
+  line-height: 1.25;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sim-tol-pct {
+  background: #f3e5f5;
+}
+
+.sim-tol-tope {
+  background: white;
+}
+
 @media (max-width: 900px) {
   .sim-grid {
     min-width: 860px;
