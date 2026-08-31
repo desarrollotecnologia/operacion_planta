@@ -1,5 +1,41 @@
 .base-table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.base-table-wrap .base-detail-table {
+  min-width: 72rem;
+  width: max(100%, 72rem);
+  table-layout: fixed;
+}
+
+.base-table-wrap .base-detail-table th:not(.col-obs),
+.base-table-wrap .base-detail-table td:not(.col-obs) {
+  white-space: nowrap;
+}
+
+.base-table-wrap .base-detail-table th.col-obs,
+.base-table-wrap .base-detail-table td.col-obs {
+  width: 42%;
+  min-width: 22rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+
+.base-table-wrap .data-table tbody tr {
+  cursor: pointer;
+}
+
+.base-table-wrap .data-table tbody tr.row-selected td {
+  background: color-mix(in srgb, var(--brand-600) 10%, white);
+}
+
+.base-table-wrap .data-table td.num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .bd-legend {
@@ -49,25 +85,4 @@
 .field textarea.field-calc:focus {
   outline: none;
   border-color: var(--line-strong);
-}
-
-.base-table-wrap .data-table tbody tr {
-  cursor: pointer;
-}
-
-.base-table-wrap .data-table tbody tr.row-selected td {
-  background: color-mix(in srgb, var(--brand-600) 10%, white);
-}
-
-.base-table-wrap .data-table td.col-obs {
-  min-width: 14rem;
-  max-width: 22rem;
-  white-space: normal;
-  font-size: 0.82rem;
-  color: var(--ink-soft);
-}
-
-.base-table-wrap .data-table td.num {
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }

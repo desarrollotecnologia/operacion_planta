@@ -6,14 +6,12 @@ import { useCierreStore } from "../../store/CierreStore";
 import "../../components/ui.css";
 import "./baseDatos.css";
 
-const MESES = [
-  { codigo: "MARZO", label: "Marzo" },
-  { codigo: "ABRIL", label: "Abril" },
-  { codigo: "MAYO", label: "Mayo" },
-  { codigo: "JUNIO", label: "Junio" },
-  { codigo: "JULIO", label: "Julio" },
-  { codigo: "AGOSTO", label: "Agosto" },
-];
+function mesLabelFromFecha(fecha: string) {
+  if (!fecha || fecha.length < 7) return "—";
+  const [anio, mes] = fecha.split("-").map(Number);
+  const nombre = new Date(anio, mes - 1, 1).toLocaleDateString("es-CO", { month: "long" });
+  return nombre.charAt(0).toUpperCase() + nombre.slice(1);
+}
 
 const empty: NuevoRegistroInput = {
   fecha: "",
@@ -67,9 +65,12 @@ function CampoCalculado({ id, label, value, hint }: { id: string; label: string;
 export function BaseDatosCierrePage() {
   const { registros, upsertRegistro, selectedFecha, setSelectedFecha, cargando, guardando, error } =
     useCierreStore();
-  const [mes, setMes] = useState("AGOSTO");
   const [form, setForm] = useState<FormState>({ ...empty, totalPielesRotas: 0 });
   const [savedFlash, setSavedFlash] = useState(false);
+
+  const prefijoMes = selectedFecha?.slice(0, 7) ?? "";
+  const anioFoco = prefijoMes ? Number(prefijoMes.slice(0, 4)) : 2026;
+  const mesLabel = mesLabelFromFecha(selectedFecha || `${prefijoMes}-01`);
 
   const selected = useMemo(
     () => registros.find((r) => r.fecha === selectedFecha) ?? null,
@@ -79,17 +80,15 @@ export function BaseDatosCierrePage() {
   const filtradas = useMemo(
     () =>
       registros
-        .filter((r) => r.mes === mes)
+        .filter((r) => !prefijoMes || r.fecha.startsWith(prefijoMes))
         .sort((a, b) => b.fecha.localeCompare(a.fecha)),
-    [registros, mes],
+    [registros, prefijoMes],
   );
 
   const totals = useMemo(() => {
     const beneficio = filtradas.reduce((a, r) => a + r.totalBeneficio, 0);
     return { beneficio, dias: filtradas.length };
   }, [filtradas]);
-
-  const mesLabel = MESES.find((m) => m.codigo === mes)?.label ?? mes;
 
   const calc = useMemo(
     () =>
@@ -115,14 +114,12 @@ export function BaseDatosCierrePage() {
     const r = registros.find((x) => x.fecha === selectedFecha);
     if (r) {
       setForm(registroToForm(r));
-      setMes(r.mes);
     }
   }, [selectedFecha, registros]);
 
   function loadRegistro(r: RegistroCierre) {
     setSelectedFecha(r.fecha);
     setForm(registroToForm(r));
-    setMes(r.mes);
   }
 
   async function onSubmit(e: FormEvent) {
@@ -142,7 +139,7 @@ export function BaseDatosCierrePage() {
     const guardado = await upsertRegistro(payload);
     if (!guardado) return;
     setSavedFlash(true);
-    setMes(guardado.mes);
+    setSelectedFecha(guardado.fecha);
     window.setTimeout(() => setSavedFlash(false), 1800);
   }
 
@@ -161,21 +158,8 @@ export function BaseDatosCierrePage() {
 
       {error ? <p className="alert-error">{error}</p> : null}
 
-      <div className="chip-row">
-        {MESES.map((m) => (
-          <button
-            key={m.codigo}
-            type="button"
-            className={`chip ${mes === m.codigo ? "active" : ""}`}
-            onClick={() => setMes(m.codigo)}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
-
       <div className="metrics-grid">
-        <MetricCard label="Mes foco" value={mesLabel} hint="2026" delay={0.05} />
+        <MetricCard label="Mes foco" value={mesLabel} hint={String(anioFoco)} delay={0.05} />
         <MetricCard label="Reses (mes)" value={String(totals.beneficio)} tone="accent" delay={0.1} />
         <MetricCard label="Días cargados" value={String(totals.dias)} delay={0.15} />
         <MetricCard
@@ -376,13 +360,13 @@ export function BaseDatosCierrePage() {
       </Panel>
 
       <Panel
-        title={`Detalle ${mesLabel} 2026`}
+        title={`Detalle ${mesLabel} ${anioFoco}`}
         subtitle="Lista de cierres guardados · clic en una fila para cargar al formulario"
         delay={0.2}
       >
         {cargando ? <p className="note-block">Cargando registros…</p> : null}
         <div className="base-table-wrap">
-          <table className="data-table">
+          <table className="data-table base-detail-table">
             <thead>
               <tr>
                 <th>Fecha</th>
@@ -401,7 +385,7 @@ export function BaseDatosCierrePage() {
                 <th>C. grasa</th>
                 <th>Par. prog.</th>
                 <th>T. improd.</th>
-                <th>Observación</th>
+                <th className="col-obs">Observación</th>
               </tr>
             </thead>
             <tbody>

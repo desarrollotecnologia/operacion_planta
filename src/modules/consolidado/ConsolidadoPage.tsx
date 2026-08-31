@@ -2,19 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { MetricCard, PageHeader, Panel, formatDate } from "../../components/ui";
 import { api, ApiError } from "../../lib/api";
 import type { ConsolidadoRow } from "../../data/types";
+import { useCierreStore } from "../../store/CierreStore";
 import "../../components/ui.css";
 
-const MESES = [
-  { codigo: "MARZO", label: "Marzo" },
-  { codigo: "ABRIL", label: "Abril" },
-  { codigo: "MAYO", label: "Mayo" },
-  { codigo: "JUNIO", label: "Junio" },
-  { codigo: "JULIO", label: "Julio" },
-  { codigo: "AGOSTO", label: "Agosto" },
-];
+function mesLabelFromFecha(fecha: string) {
+  if (!fecha || fecha.length < 7) return "—";
+  const [anio, mes] = fecha.split("-").map(Number);
+  const nombre = new Date(anio, mes - 1, 1).toLocaleDateString("es-CO", { month: "long" });
+  return nombre.charAt(0).toUpperCase() + nombre.slice(1);
+}
 
 export function ConsolidadoPage() {
-  const [mes, setMes] = useState("AGOSTO");
+  const { selectedFecha } = useCierreStore();
   const [rows, setRows] = useState<ConsolidadoRow[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,9 +33,16 @@ export function ConsolidadoPage() {
     })();
   }, []);
 
+  const prefijoMes = selectedFecha?.slice(0, 7) ?? "";
+  const anioFoco = prefijoMes ? Number(prefijoMes.slice(0, 4)) : 2026;
+  const mesLabel = mesLabelFromFecha(selectedFecha || `${prefijoMes}-01`);
+
   const filtradas = useMemo(
-    () => rows.filter((r) => r.mes === mes).sort((a, b) => b.fecha.localeCompare(a.fecha)),
-    [rows, mes],
+    () =>
+      rows
+        .filter((r) => !prefijoMes || r.fecha.startsWith(prefijoMes))
+        .sort((a, b) => b.fecha.localeCompare(a.fecha)),
+    [rows, prefijoMes],
   );
 
   const totals = useMemo(() => {
@@ -48,8 +54,6 @@ export function ConsolidadoPage() {
     return { beneficio, avgAsignado, dias: filtradas.length };
   }, [filtradas]);
 
-  const mesLabel = MESES.find((m) => m.codigo === mes)?.label ?? mes;
-
   return (
     <div>
       <PageHeader
@@ -58,30 +62,17 @@ export function ConsolidadoPage() {
         description="Histórico 2026: beneficio, tiempos, rendimientos y personal asignado/contratado por día."
       />
 
-      <div className="chip-row">
-        {MESES.map((m) => (
-          <button
-            key={m.codigo}
-            type="button"
-            className={`chip ${mes === m.codigo ? "active" : ""}`}
-            onClick={() => setMes(m.codigo)}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
-
       {error ? <p className="note-block">{error}</p> : null}
       {cargando ? <p className="note-block">Cargando consolidado…</p> : null}
 
       <div className="metrics-grid">
-        <MetricCard label="Mes foco" value={mesLabel} hint="2026" delay={0.05} />
+        <MetricCard label="Mes foco" value={mesLabel} hint={String(anioFoco)} delay={0.05} />
         <MetricCard label="Reses (mes)" value={String(totals.beneficio)} tone="accent" delay={0.1} />
         <MetricCard label="Días cargados" value={String(totals.dias)} delay={0.15} />
         <MetricCard label="Personal asignado avg" value={String(totals.avgAsignado)} tone="ok" delay={0.2} />
       </div>
 
-      <Panel title={`Detalle ${mesLabel} 2026`} subtitle="Base de datos cierre + personal del consolidado" delay={0.22}>
+      <Panel title={`Detalle ${mesLabel} ${anioFoco}`} subtitle="Base de datos cierre + personal del consolidado" delay={0.22}>
         <div style={{ overflowX: "auto" }}>
           <table className="data-table">
             <thead>
