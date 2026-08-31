@@ -38,6 +38,14 @@ npm run import:datos                    # novedades + cierres
 npm run deploy
 ```
 
+En el servidor Windows puedes usar el script de actualización automática:
+
+```cmd
+actualizar-y-desplegar.bat
+```
+
+Hace `git pull`, `npm install`, `npm run build`, reinicia el servicio en el puerto **5174** y verifica `/api/health`. Si registraste la tarea con `register-task.ps1`, la reinicia; si no, levanta `node server/index.mjs` en segundo plano.
+
 ### Importación de novedades
 
 El Excel identifica a cada operario por un número de item que es su posición en
