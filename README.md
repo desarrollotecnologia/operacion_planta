@@ -111,6 +111,7 @@ npm run lint
 | GET | `/api/cierres/consolidado` | Vista `vw_consolidado_cierre` |
 | GET | `/api/cierres/ultimo` | Fecha del cierre más reciente |
 | GET | `/api/cierres/:fecha/simulacion` | Datos de la simulación del día |
+| PUT | `/api/cierres/:fecha/simulacion` | Guardar simulación (sincroniza `cierre_diario`) |
 | GET | `/api/cierres/:fecha/cierre-proceso` | Indicadores del cierre de proceso |
 | GET | `/api/cierres/:fecha/novedades` | Resumen de novedades del día |
 | GET | `/api/operarios` | Lista, filtrable por `area` y `activo` |

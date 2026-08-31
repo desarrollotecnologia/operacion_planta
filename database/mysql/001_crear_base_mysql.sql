@@ -145,6 +145,8 @@ CREATE TABLE IF NOT EXISTS simulacion_dia (
   parada_programada_hr  DECIMAL(8,4) NOT NULL DEFAULT 0,
   vaciado_linea_hr      DECIMAL(8,4) NOT NULL DEFAULT 0,
   hora_inicio           TIME         NULL,
+  ultima_noqueada       TIME         NULL,
+  ultima_pesada         TIME         NULL,
   duracion_deseada_hr   DECIMAL(8,4) NULL,
   duracion_efectiva_hr  DECIMAL(8,4) NULL,
   duracion_noqueo_hr    DECIMAL(8,4) NULL,

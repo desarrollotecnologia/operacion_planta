@@ -15,6 +15,7 @@ import type {
   Operario,
   RegistroCierre,
   SimulacionData,
+  SimulacionInput,
 } from "../data/types";
 
 const BASE = import.meta.env.VITE_API_URL ?? "/api";
@@ -88,6 +89,12 @@ export const api = {
     request<ConsolidadoRow[]>(`/cierres/consolidado${qs(params)}`),
 
   simulacion: (fecha: string) => request<SimulacionData>(`/cierres/${fecha}/simulacion`),
+
+  guardarSimulacion: (fecha: string, input: SimulacionInput) =>
+    request<SimulacionData>(`/cierres/${fecha}/simulacion`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
 
   cierreProceso: (fecha: string) => request<CierreProcesoData>(`/cierres/${fecha}/cierre-proceso`),
 

@@ -1,0 +1,123 @@
+.sim-sheet {
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+}
+
+.sim-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 720px;
+}
+
+.sim-table th,
+.sim-table td {
+  border: 1px solid var(--line-strong);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.sim-table th {
+  background: color-mix(in srgb, var(--brand-700) 8%, white);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.sim-table .sim-label {
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 11rem;
+  background: var(--surface-muted, #f8f9fb);
+}
+
+.sim-input {
+  width: 100%;
+  min-width: 5.5rem;
+  border: 1px solid #6b9e6b;
+  border-radius: 2px;
+  padding: 0.35rem 0.45rem;
+  background: #e8f5e9;
+  color: var(--ink);
+  font: inherit;
+}
+
+.sim-input:focus {
+  outline: 2px solid color-mix(in srgb, #2e7d32 35%, transparent);
+  border-color: #2e7d32;
+}
+
+.sim-calc {
+  background: #f3f4f6;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-ref {
+  background: #fff9c4;
+  font-weight: 600;
+  text-align: center;
+}
+
+.sim-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.sim-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sim-legend i {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+}
+
+.sim-legend .lg-input i {
+  background: #e8f5e9;
+  border-color: #6b9e6b;
+}
+
+.sim-legend .lg-calc i {
+  background: #f3f4f6;
+}
+
+.sim-legend .lg-ref i {
+  background: #fff9c4;
+}
+
+.sim-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sim-actions .note-block {
+  margin: 0;
+}
+
+.sim-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-700);
+  margin: 1.25rem 0 0.5rem;
+}
+
+.sim-section-title:first-child {
+  margin-top: 0;
+}

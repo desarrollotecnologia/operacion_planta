@@ -3,6 +3,7 @@
  */
 import { query, queryOne } from './db.mjs';
 import { cierreFromRow } from './mappers.mjs';
+import { calcSimulacion } from './simulacion-calc.mjs';
 
 const CIERRE_COLS = `
   id, fecha, total_beneficio, hora_inicio, hora_fin, duracion_min,
@@ -48,22 +49,33 @@ const ORDEN_OPERATIVIDAD = [
   'INCAPACIDAD LARGAS',
 ];
 
-function simulacionFromRow(row) {
-  if (!row) return null;
+function simulacionInputFromRow(row) {
   return {
     reses: Number(row.reses),
     velocidadBruta: Number(row.velocidad_bruta),
     paradaProgramadaHr: Number(row.parada_programada_hr),
     vaciadoLineaHr: Number(row.vaciado_linea_hr),
-    horaInicio: toHHMM(row.hora_inicio),
-    duracionDeseadaHr: Number(row.duracion_deseada_hr),
-    duracionEfectivaHr: Number(row.duracion_efectiva_hr),
-    duracionNoqueoHr: Number(row.duracion_noqueo_hr),
-    velocidadNeta: Number(row.velocidad_neta),
-    velocidadNetaNoqueo: Number(row.velocidad_neta_noqueo),
-    resesPorMin: Number(row.reses_por_min),
-    segundosPorRes: row.segundos_por_res === null ? 0 : Number(row.segundos_por_res),
+    horaInicio: toHHMM(row.hora_inicio) ?? '',
+    ultimaNoqueada: row.ultima_noqueada ? toHHMM(row.ultima_noqueada) : '',
+    ultimaPesada: row.ultima_pesada ? toHHMM(row.ultima_pesada) : '',
   };
+}
+
+function simulacionFromRow(row, fecha) {
+  if (!row) return null;
+  return { fecha, ...calcSimulacion(simulacionInputFromRow(row)) };
+}
+
+function simulacionFromCierre(cierre) {
+  return calcSimulacion({
+    reses: cierre.total_beneficio,
+    velocidadBruta: Number(cierre.velocidad_bruta) || 75,
+    paradaProgramadaHr: Number(cierre.parada_programada_min) / 60,
+    vaciadoLineaHr: 0,
+    horaInicio: toHHMM(cierre.hora_inicio) ?? '14:00',
+    ultimaNoqueada: '',
+    ultimaPesada: toHHMM(cierre.hora_fin) ?? '',
+  });
 }
 
 function buildOperatividad(resumenRows, base) {
@@ -102,14 +114,18 @@ function buildOperatividad(resumenRows, base) {
 }
 
 export async function getSimulacion(fecha) {
-  const row = await queryOne(
-    `SELECT s.*
-       FROM simulacion_dia s
-       JOIN cierre_diario c ON c.id = s.cierre_id
-      WHERE c.fecha = ?`,
+  const cierre = await queryOne(
+    `SELECT id, fecha, total_beneficio, hora_inicio, hora_fin,
+            parada_programada_min, velocidad_bruta
+       FROM cierre_diario
+      WHERE fecha = ?`,
     [fecha],
   );
-  return simulacionFromRow(row);
+  if (!cierre) return null;
+
+  const sim = await queryOne('SELECT * FROM simulacion_dia WHERE cierre_id = ?', [cierre.id]);
+  if (sim) return simulacionFromRow(sim, fecha);
+  return { fecha, ...simulacionFromCierre(cierre) };
 }
 
 export async function getCierreProceso(fecha) {

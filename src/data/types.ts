@@ -63,19 +63,30 @@ export type Catalogos = {
   estados: EstadoNovedad[];
 };
 
-export type SimulacionData = {
+export type SimulacionInput = {
   reses: number;
   velocidadBruta: number;
   paradaProgramadaHr: number;
   vaciadoLineaHr: number;
   horaInicio: string;
+  ultimaNoqueada: string;
+  ultimaPesada: string;
+};
+
+export type SimulacionData = SimulacionInput & {
+  fecha?: string;
   duracionDeseadaHr: number;
   duracionEfectivaHr: number;
   duracionNoqueoHr: number;
   velocidadNeta: number;
   velocidadNetaNoqueo: number;
   resesPorMin: number;
+  minutosPorRes: number;
+  minPorResTexto: string;
   segundosPorRes: number;
+  tiempoLaborado: string;
+  desfasePesadaNoqueo: string;
+  horasLaboradas: number;
 };
 
 export type OperatividadRow = {

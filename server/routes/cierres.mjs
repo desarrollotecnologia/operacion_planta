@@ -7,6 +7,7 @@ import {
   getUltimaFecha,
 } from '../build-cierre-vista.mjs';
 import { cierreFromRow, consolidadoFromRow, toSqlTime } from '../mappers.mjs';
+import { saveSimulacion } from '../simulacion-service.mjs';
 import { asDate, asInt, asNumber, asText, asTime, notFound } from '../validate.mjs';
 
 export const cierresRouter = Router();
@@ -135,7 +136,13 @@ cierresRouter.get('/ultimo', async (_req, res) => {
 cierresRouter.get('/:fecha/simulacion', async (req, res) => {
   const fecha = asDate(req.params.fecha, 'fecha');
   const data = await getSimulacion(fecha);
-  if (!data) throw notFound(`No hay simulacion para ${fecha}.`);
+  if (!data) throw notFound(`No hay cierre registrado para ${fecha}.`);
+  res.json(data);
+});
+
+cierresRouter.put('/:fecha/simulacion', async (req, res) => {
+  const fecha = asDate(req.params.fecha, 'fecha');
+  const data = await saveSimulacion(fecha, req.body);
   res.json(data);
 });
 
