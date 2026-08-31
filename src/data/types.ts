@@ -17,6 +17,9 @@ export type RegistroCierre = {
   velocidadBruta: number;
   toleranciaCero: number;
   pieles: number;
+  cortePierna: number;
+  sobrebarrigaRota: number;
+  coberturaGrasa: number;
   observacion: string;
   mes: string;
   anio: number;
@@ -113,6 +116,9 @@ export type CierreProcesoData = {
   velocidadBruta: number;
   toleranciaCero: number;
   pieles: number;
+  cortePierna: number;
+  sobrebarrigaRota: number;
+  coberturaGrasa: number;
   paradasProgramadasMin: number;
   tiemposImproductivosMin: number;
   fallosMaquinaria: string;

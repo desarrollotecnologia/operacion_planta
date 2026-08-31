@@ -104,6 +104,9 @@ function parseBaseRow(row) {
     velocidad_bruta: num(row[13]),
     tolerancia_cero: num(row[14]),
     pieles: num(row[15]),
+    corte_pierna: num(row[16]),
+    sobrebarriga_rota: num(row[17]),
+    cobertura_grasa: num(row[18]),
     observacion: text(row[21]),
   };
 }
@@ -142,8 +145,9 @@ async function upsertCierre(data) {
     `INSERT INTO cierre_diario (
        fecha, total_beneficio, hora_inicio, hora_fin, tiempo_paradas_min,
        parada_programada_min, velocidad_linea, horas_laboradas, tardanza_inicio_min,
-       productividad, velocidad_neta, velocidad_bruta, tolerancia_cero, pieles, observacion
-     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       productividad, velocidad_neta, velocidad_bruta, tolerancia_cero, pieles,
+       corte_pierna, sobrebarriga_rota, cobertura_grasa, observacion
+     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
      ON DUPLICATE KEY UPDATE
        total_beneficio       = VALUES(total_beneficio),
        hora_inicio           = VALUES(hora_inicio),
@@ -158,13 +162,17 @@ async function upsertCierre(data) {
        velocidad_bruta       = VALUES(velocidad_bruta),
        tolerancia_cero       = VALUES(tolerancia_cero),
        pieles                = VALUES(pieles),
+       corte_pierna          = VALUES(corte_pierna),
+       sobrebarriga_rota     = VALUES(sobrebarriga_rota),
+       cobertura_grasa       = VALUES(cobertura_grasa),
        observacion           = VALUES(observacion)`,
     [
       data.fecha, data.total_beneficio, data.hora_inicio, data.hora_fin,
       data.tiempo_paradas_min, data.parada_programada_min, data.velocidad_linea,
       data.horas_laboradas, data.tardanza_inicio_min, data.productividad,
       data.velocidad_neta, data.velocidad_bruta, data.tolerancia_cero,
-      data.pieles, data.observacion,
+      data.pieles, data.corte_pierna, data.sobrebarriga_rota, data.cobertura_grasa,
+      data.observacion,
     ],
   );
   return queryOne('SELECT id FROM cierre_diario WHERE fecha = ?', [data.fecha]);

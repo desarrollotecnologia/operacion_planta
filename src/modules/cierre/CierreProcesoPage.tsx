@@ -1,3 +1,4 @@
+import type { CierreProcesoData } from "../../data/types";
 import { Badge, MetricCard, PageHeader, Panel, formatDate, pct } from "../../components/ui";
 import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { useCierreStore } from "../../store/CierreStore";
@@ -6,6 +7,24 @@ import "../../components/ui.css";
 function difClass(n: number) {
   if (Math.abs(n) < 0.0005) return "dif-zero";
   return n < 0 ? "dif-neg" : "dif-pos";
+}
+
+function indicadoresTurno(c: CierreProcesoData) {
+  return [
+    ["Hora de inicio", c.horaInicio],
+    ["Hora fin", c.horaFin],
+    ["Horas laboradas", c.horasLaboradas.toFixed(2)],
+    ["Tardanza inicio", `${c.tardanzaInicio} min`],
+    ["Productividad", c.productividad.toFixed(1)],
+    ["Velocidad bruta", `${c.velocidadBruta.toFixed(1)} r/h`],
+    ["Tolerancia cero", pct(c.toleranciaCero)],
+    ["Pieles rotas", pct(c.pieles)],
+    ["Cortes en pierna", pct(c.cortePierna)],
+    ["Sobrebarriga rotas", pct(c.sobrebarrigaRota)],
+    ["Cobertura grasa", pct(c.coberturaGrasa)],
+    ["Paradas programadas minutos", `${c.paradasProgramadasMin} min`],
+    ["Tiempos improductivos", `${c.tiemposImproductivosMin} min`],
+  ] as const;
 }
 
 export function CierreProcesoPage() {
@@ -37,29 +56,21 @@ export function CierreProcesoPage() {
           tone="accent"
           delay={0.1}
         />
-        <MetricCard label="OEE día" value={pct(c.oeeDia)} tone="ok" delay={0.15} />
         <MetricCard
-          label="Productividad"
-          value={c.productividad.toFixed(1)}
-          hint={`Paradas prog. ${c.paradasProgramadasMin} min`}
-          delay={0.2}
+          label="Velocidad línea beneficio"
+          value={`${c.velocidadNeta.toFixed(1)} r/h`}
+          hint="Velocidad neta"
+          tone="ok"
+          delay={0.15}
         />
+        <MetricCard label="OEE día" value={pct(c.oeeDia)} delay={0.2} />
       </div>
 
       <div className="stack-2">
         <Panel title="Indicadores del turno" delay={0.18}>
           <table className="data-table">
             <tbody>
-              {[
-                ["Velocidad línea", `${c.velocidadLinea.toFixed(1)} r/h`],
-                ["Horas laboradas", c.horasLaboradas],
-                ["Tardanza inicio", `${c.tardanzaInicio} min`],
-                ["Velocidad neta", c.velocidadNeta.toFixed(1)],
-                ["Velocidad bruta", c.velocidadBruta.toFixed(1)],
-                ["Tolerancia cero", pct(c.toleranciaCero)],
-                ["Pieles", pct(c.pieles)],
-                ["Tiempos improductivos", `${c.tiemposImproductivosMin} min`],
-              ].map(([k, v]) => (
+              {indicadoresTurno(c).map(([k, v]) => (
                 <tr key={String(k)}>
                   <td>{k}</td>
                   <td>

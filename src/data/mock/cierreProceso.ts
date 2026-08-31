@@ -36,6 +36,9 @@ export type CierreProcesoData = {
   velocidadBruta: number;
   toleranciaCero: number;
   pieles: number;
+  cortePierna: number;
+  sobrebarrigaRota: number;
+  coberturaGrasa: number;
   paradasProgramadasMin: number;
   tiemposImproductivosMin: number;
   fallosMaquinaria: string;
@@ -59,7 +62,10 @@ export const cierreProcesoMock: CierreProcesoData = {
   velocidadNeta: 75,
   velocidadBruta: 68.2,
   toleranciaCero: 0.0096,
-  pieles: 0.98,
+  pieles: 0.035,
+  cortePierna: 0.0066,
+  sobrebarrigaRota: 0.0038,
+  coberturaGrasa: 0.0094,
   paradasProgramadasMin: 30,
   tiemposImproductivosMin: 61,
   fallosMaquinaria:

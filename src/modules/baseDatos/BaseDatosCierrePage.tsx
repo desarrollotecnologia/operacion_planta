@@ -19,6 +19,9 @@ const empty: NuevoRegistroInput = {
   velocidadBruta: 70,
   toleranciaCero: 0.01,
   pieles: 0.98,
+  cortePierna: 0,
+  sobrebarrigaRota: 0,
+  coberturaGrasa: 0,
   observacion: "",
 };
 

@@ -121,6 +121,9 @@ CREATE TABLE IF NOT EXISTS cierre_diario (
   velocidad_bruta       DECIMAL(8,2) NOT NULL,
   tolerancia_cero       DECIMAL(10,6) NOT NULL DEFAULT 0,
   pieles                DECIMAL(8,4) NOT NULL DEFAULT 0,
+  corte_pierna          DECIMAL(10,6) NOT NULL DEFAULT 0,
+  sobrebarriga_rota     DECIMAL(10,6) NOT NULL DEFAULT 0,
+  cobertura_grasa       DECIMAL(10,6) NOT NULL DEFAULT 0,
   observacion           TEXT         NULL,
   mes                   VARCHAR(15) GENERATED ALWAYS AS (
     ELT(MONTH(fecha),

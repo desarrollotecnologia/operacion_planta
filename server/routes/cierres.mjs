@@ -16,7 +16,8 @@ const COLUMNS = `
   id, fecha, total_beneficio, hora_inicio, hora_fin, duracion_min,
   tiempo_paradas_min, parada_programada_min, velocidad_linea, horas_laboradas,
   tardanza_inicio_min, productividad, velocidad_neta, velocidad_bruta,
-  tolerancia_cero, pieles, observacion, mes, anio
+  tolerancia_cero, pieles, corte_pierna, sobrebarriga_rota, cobertura_grasa,
+  observacion, mes, anio
 `;
 
 /** Normaliza el cuerpo del formulario "Base de datos cierre". */

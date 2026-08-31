@@ -9,7 +9,8 @@ const CIERRE_COLS = `
   id, fecha, total_beneficio, hora_inicio, hora_fin, duracion_min,
   tiempo_paradas_min, parada_programada_min, velocidad_linea, horas_laboradas,
   tardanza_inicio_min, productividad, velocidad_neta, velocidad_bruta,
-  tolerancia_cero, pieles, observacion, mes, anio
+  tolerancia_cero, pieles, corte_pierna, sobrebarriga_rota, cobertura_grasa,
+  observacion, mes, anio
 `;
 
 const toHHMM = (time) => (typeof time === 'string' ? time.slice(0, 5) : time);
@@ -190,6 +191,9 @@ export async function getCierreProceso(fecha) {
     velocidadBruta: cierre.velocidadBruta,
     toleranciaCero: cierre.toleranciaCero,
     pieles: cierre.pieles,
+    cortePierna: cierre.cortePierna,
+    sobrebarrigaRota: cierre.sobrebarrigaRota,
+    coberturaGrasa: cierre.coberturaGrasa,
     paradasProgramadasMin: cierre.paradaProgramadaMin,
     tiemposImproductivosMin: cierre.tiempoParadasMin,
     fallosMaquinaria: detalle?.fallos_maquinaria ?? '',
