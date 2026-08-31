@@ -7,21 +7,16 @@ import "./cierreProceso.css";
 
 function indicadoresLinea(c: CierreProcesoData) {
   return [
-    ["Total de beneficio", String(c.totalBeneficio)],
     ["Hora de inicio", c.horaInicio],
     ["Hora fin", c.horaFin],
-    ["Indicador O.E.E (mes)", pct(c.oeeMes)],
-    ["Indicador O.E.E (día)", pct(c.oeeDia)],
-    ["Velocidad línea de beneficio", c.velocidadLinea.toFixed(1)],
     ["Horas laboradas", c.horasLaboradas.toFixed(1)],
     ["Tardanza de inicio", String(c.tardanzaInicio)],
     ["Productividad", c.productividad.toFixed(1)],
-    ["Velocidad neta", c.velocidadNeta.toFixed(1)],
     ["Velocidad bruta", c.velocidadBruta.toFixed(1)],
     ["Tolerancia cero", pct(c.toleranciaCero)],
-    ["Pieles", pct(c.pieles)],
-    ["Corte en pierna", pct(c.cortePierna)],
-    ["Sobrebarrigas rotas", pct(c.sobrebarrigaRota)],
+    ["Pieles rotas", pct(c.pieles)],
+    ["Cortes en pierna", pct(c.cortePierna)],
+    ["Sobrebarriga rotas", pct(c.sobrebarrigaRota)],
     ["Cobertura grasa", pct(c.coberturaGrasa)],
     ["Paradas programadas (min)", String(c.paradasProgramadasMin)],
     ["Tiempos improductivos (min)", String(c.tiemposImproductivosMin)],
@@ -91,7 +86,7 @@ function OperatividadBlock({
               <tr key={`${r.item}-${r.criterio}`}>
                 <td>{r.item}</td>
                 <td>
-                  {r.estadoCodigo === "INCAPACIDAD" ? (
+                  {r.estadoCodigo === "INCAPACIDAD" && r.personas > 3 ? (
                     <Badge tone="danger">{r.criterio}</Badge>
                   ) : (
                     r.criterio

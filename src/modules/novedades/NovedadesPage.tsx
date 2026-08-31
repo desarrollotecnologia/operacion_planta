@@ -56,7 +56,7 @@ export function NovedadesPage() {
               {n.resumen.map((r) => (
                 <tr key={r.criterio}>
                   <td>
-                    {r.criterio === "INCAPACIDAD" ? (
+                    {r.criterio === "INCAPACIDAD" && r.cantidad > 3 ? (
                       <Badge tone="danger">{r.criterio}</Badge>
                     ) : r.criterio === "LABORANDO" ? (
                       <Badge tone="ok">{r.criterio}</Badge>
