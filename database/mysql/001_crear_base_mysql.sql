@@ -59,7 +59,10 @@ INSERT INTO cat_estado_novedad (codigo, nombre, es_ausentismo) VALUES
   ('INDUCCION',           'Inducción',                 0),
   ('PERMISO_REMUNERADO',  'Permiso remunerado',        1),
   ('LICENCIA_PATERNIDAD', 'Licencia de paternidad',    1),
-  ('DIA_FAMILIA',         'Día de la familia',         1)
+  ('DIA_FAMILIA',         'Día de la familia',         1),
+  ('AISLAMIENTO',         'Aislamiento',               1),
+  ('LICENCIA_MATRIMONIO', 'Licencia matrimonio',       1),
+  ('TRABAJO_EN_CASA',     'Trabajo en casa',           1)
 AS new
 ON DUPLICATE KEY UPDATE nombre = new.nombre, es_ausentismo = new.es_ausentismo;
 
@@ -234,6 +237,7 @@ CREATE TABLE IF NOT EXISTS operario (
   nombre_completo VARCHAR(200) NOT NULL,
   nombre_corto    VARCHAR(120) NULL,
   documento       VARCHAR(30)  NULL,
+  renuncias_texto VARCHAR(200) NULL,
   activo          TINYINT(1)   NOT NULL DEFAULT 1,
   fecha_ingreso   DATE         NULL,
   creado_en       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -242,6 +246,7 @@ CREATE TABLE IF NOT EXISTS operario (
   UNIQUE KEY uk_operario_area_item (area_id, item_orden),
   KEY idx_operario_area_activo (area_id, activo),
   KEY idx_operario_nombre (nombre_completo),
+  KEY idx_operario_documento (documento),
   CONSTRAINT fk_operario_area FOREIGN KEY (area_id) REFERENCES cat_area (id),
   CONSTRAINT fk_operario_puesto FOREIGN KEY (puesto_id) REFERENCES cat_puesto (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

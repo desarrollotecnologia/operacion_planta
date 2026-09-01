@@ -12,6 +12,7 @@
     "deploy": "npm run build && npm start",
     "seed": "node server/seed.mjs",
     "import:novedades": "node server/import-novedades.mjs",
+    "import:novedades:pccom": "node server/import-novedades-pccom.mjs",
     "import:cierre": "node server/import-cierre.mjs",
     "import:datos": "node server/import-novedades.mjs && node server/import-cierre.mjs",
     "check-db": "node server/check-db.mjs",
