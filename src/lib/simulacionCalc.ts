@@ -53,11 +53,14 @@ export function diffTimes(fin: string, inicio: string): number | null {
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const r4 = (n: number) => Math.round(n * 10000) / 10000;
 
+/** Valor fijo columna F — VACIADO LÍNEA (Hr) en hoja SIMULACION. */
+export const VACIADO_LINEA_HR = 0.49;
+
 export function calcSimulacion(input: SimulacionInput): SimulacionCalculada {
   const reses = Number(input.reses) || 0;
   const velocidadBruta = Number(input.velocidadBruta) || 0;
   const paradaProgramadaHr = Number(input.paradaProgramadaHr) || 0;
-  const vaciadoLineaHr = Number(input.vaciadoLineaHr) || 0;
+  const vaciadoLineaHr = VACIADO_LINEA_HR;
 
   const duracionDeseadaHr = velocidadBruta > 0 ? reses / velocidadBruta : 0;
   const duracionEfectivaHr = duracionDeseadaHr - paradaProgramadaHr;
@@ -73,6 +76,7 @@ export function calcSimulacion(input: SimulacionInput): SimulacionCalculada {
 
   return {
     ...input,
+    vaciadoLineaHr: VACIADO_LINEA_HR,
     duracionDeseadaHr: r4(duracionDeseadaHr),
     duracionEfectivaHr: r4(duracionEfectivaHr),
     duracionNoqueoHr: r4(duracionNoqueoHr),
@@ -124,7 +128,7 @@ export const SIMULACION_VACIA: SimulacionInput = {
   reses: 0,
   velocidadBruta: 75,
   paradaProgramadaHr: 0.5,
-  vaciadoLineaHr: 0,
+  vaciadoLineaHr: VACIADO_LINEA_HR,
   horaInicio: '14:00',
   ultimaNoqueada: '',
   ultimaPesada: '',

@@ -3,7 +3,7 @@ import { PageHeader } from "../../components/ui";
 import { useCierreStore } from "../../store/CierreStore";
 import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { api, ApiError } from "../../lib/api";
-import { calcBloquesSimulacion, calcSimulacion, fmtPctExcel, SIMULACION_VACIA } from "../../lib/simulacionCalc";
+import { calcBloquesSimulacion, calcSimulacion, fmtPctExcel, SIMULACION_VACIA, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
 import type { SimulacionInput } from "../../data/types";
 import "../../components/ui.css";
 import "./simulacion.css";
@@ -13,14 +13,14 @@ function toFormInput(data: Partial<SimulacionInput>): SimulacionInput {
     reses: data.reses ?? SIMULACION_VACIA.reses,
     velocidadBruta: data.velocidadBruta ?? SIMULACION_VACIA.velocidadBruta,
     paradaProgramadaHr: data.paradaProgramadaHr ?? SIMULACION_VACIA.paradaProgramadaHr,
-    vaciadoLineaHr: data.vaciadoLineaHr ?? SIMULACION_VACIA.vaciadoLineaHr,
+    vaciadoLineaHr: VACIADO_LINEA_HR,
     horaInicio: data.horaInicio ?? SIMULACION_VACIA.horaInicio,
     ultimaNoqueada: data.ultimaNoqueada ?? "",
     ultimaPesada: data.ultimaPesada ?? "",
   };
 }
 
-type NumKey = "reses" | "velocidadBruta" | "paradaProgramadaHr" | "vaciadoLineaHr";
+type NumKey = "reses" | "velocidadBruta" | "paradaProgramadaHr";
 
 export function SimulacionPage() {
   const { selectedFecha } = useCierreStore();
@@ -56,7 +56,7 @@ export function SimulacionPage() {
     setErrorGuardado(null);
     setMensaje(null);
     try {
-      await api.guardarSimulacion(selectedFecha, form);
+      await api.guardarSimulacion(selectedFecha, { ...form, vaciadoLineaHr: VACIADO_LINEA_HR });
       await recargar();
       setMensaje("Simulación guardada y sincronizada con el cierre del día.");
     } catch (err) {
@@ -171,16 +171,8 @@ export function SimulacionPage() {
                     onChange={(e) => setNum("paradaProgramadaHr", e.target.value)}
                   />
                 </td>
-                <td>
-                  <input
-                    className="sim-input"
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    title="F4 — Vaciado línea"
-                    value={form.vaciadoLineaHr || ""}
-                    onChange={(e) => setNum("vaciadoLineaHr", e.target.value)}
-                  />
+                <td className="sim-calc" title="F4 — Vaciado línea (fijo)">
+                  {VACIADO_LINEA_HR.toFixed(2)}
                 </td>
                 <td className="sim-calc" title="G = # RESES / Vel. bruta">
                   {calc.duracionDeseadaHr.toFixed(4)}

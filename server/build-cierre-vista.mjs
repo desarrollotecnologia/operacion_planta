@@ -4,7 +4,7 @@
 import { query, queryOne } from './db.mjs';
 import { cierreFromRow } from './mappers.mjs';
 import { colaboradoresCortos } from './nombres.mjs';
-import { calcSimulacion } from './simulacion-calc.mjs';
+import { calcSimulacion, VACIADO_LINEA_HR } from './simulacion-calc.mjs';
 
 const CIERRE_COLS = `
   id, fecha, total_beneficio, hora_inicio, hora_fin, duracion_min,
@@ -73,7 +73,7 @@ function simulacionFromCierre(cierre) {
     reses: cierre.total_beneficio,
     velocidadBruta: Number(cierre.velocidad_bruta) || 75,
     paradaProgramadaHr: Number(cierre.parada_programada_min) / 60,
-    vaciadoLineaHr: 0,
+    vaciadoLineaHr: VACIADO_LINEA_HR,
     horaInicio: toHHMM(cierre.hora_inicio) ?? '14:00',
     ultimaNoqueada: '',
     ultimaPesada: toHHMM(cierre.hora_fin) ?? '',

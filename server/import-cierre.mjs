@@ -17,7 +17,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import XLSX from 'xlsx';
 
-import { pool, query, queryOne } from './db.mjs';
+import { VACIADO_LINEA_HR } from './simulacion-calc.mjs';
 import {
   addMinutesToTime,
   num,
@@ -117,8 +117,7 @@ function simulacionFromCierre(cierre) {
   const paradaHr = cierre.parada_programada_min / 60;
   const duracionDeseada = velBruta > 0 ? reses / velBruta : cierre.horas_laboradas;
   const duracionEfectiva = cierre.horas_laboradas || Math.max(duracionDeseada - paradaHr, 0);
-  const vaciadoHr = Math.max(duracionDeseada - duracionEfectiva - paradaHr, 0);
-  const duracionNoqueo = Math.max(duracionEfectiva - vaciadoHr, 0);
+  const duracionNoqueo = Math.max(duracionEfectiva - VACIADO_LINEA_HR, 0);
   const velNeta = cierre.velocidad_neta || (duracionEfectiva > 0 ? reses / duracionEfectiva : 0);
   const velNoqueo = duracionNoqueo > 0 ? reses / duracionNoqueo : velNeta;
   const resesPorMin = duracionEfectiva > 0 ? reses / (duracionEfectiva * 60) : 0;
@@ -128,7 +127,7 @@ function simulacionFromCierre(cierre) {
     reses,
     velocidad_bruta: velBruta,
     parada_programada_hr: paradaHr,
-    vaciado_linea_hr: Number(vaciadoHr.toFixed(4)),
+    vaciado_linea_hr: VACIADO_LINEA_HR,
     hora_inicio: cierre.hora_inicio,
     duracion_deseada_hr: Number(duracionDeseada.toFixed(4)),
     duracion_efectiva_hr: Number(duracionEfectiva.toFixed(4)),

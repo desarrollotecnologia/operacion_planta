@@ -2,7 +2,7 @@
  * Persistencia de simulacion_dia y sincronizacion con cierre_diario.
  */
 import { query, queryOne } from './db.mjs';
-import { calcSimulacion } from './simulacion-calc.mjs';
+import { calcSimulacion, VACIADO_LINEA_HR } from './simulacion-calc.mjs';
 import { toSqlTime } from './mappers.mjs';
 import { asDate, asInt, asNumber, asTime, badRequest, notFound } from './validate.mjs';
 import { getSimulacion } from './build-cierre-vista.mjs';
@@ -22,7 +22,7 @@ function parseSimulacionBody(body, fechaParam) {
       max: 24,
       fallback: 0,
     }),
-    vaciadoLineaHr: asNumber(body.vaciadoLineaHr, 'vaciadoLineaHr', { min: 0, max: 24, fallback: 0 }),
+    vaciadoLineaHr: VACIADO_LINEA_HR,
     horaInicio: asTime(body.horaInicio, 'horaInicio'),
     ultimaNoqueada: asOptionalTime(body.ultimaNoqueada, 'ultimaNoqueada'),
     ultimaPesada: asOptionalTime(body.ultimaPesada, 'ultimaPesada'),

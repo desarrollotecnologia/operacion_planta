@@ -1,7 +1,11 @@
 /**
  * Formulas de la hoja SIMULACION (CIERRE DIARIO DE BENEFICIO).
- * Entradas verdes: reses, vel. bruta, parada, vaciado, hora inicio, ultima noqueada/pesada.
+ * Entradas verdes: reses, vel. bruta, parada, hora inicio, ultima noqueada/pesada.
+ * VACIADO LÍNEA (F) = constante 0.49 hr.
  */
+
+/** Valor fijo columna F — VACIADO LÍNEA (Hr). */
+export const VACIADO_LINEA_HR = 0.49;
 
 function pad2(n) {
   return String(Math.floor(n)).padStart(2, '0');
@@ -41,7 +45,7 @@ export function calcSimulacion(input) {
   const reses = Number(input.reses) || 0;
   const velocidadBruta = Number(input.velocidadBruta) || 0;
   const paradaProgramadaHr = Number(input.paradaProgramadaHr) || 0;
-  const vaciadoLineaHr = Number(input.vaciadoLineaHr) || 0;
+  const vaciadoLineaHr = VACIADO_LINEA_HR;
   const horaInicio = input.horaInicio ?? '';
   const ultimaNoqueada = input.ultimaNoqueada ?? '';
   const ultimaPesada = input.ultimaPesada ?? '';
