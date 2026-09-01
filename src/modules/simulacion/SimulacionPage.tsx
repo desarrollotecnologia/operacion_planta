@@ -245,7 +245,7 @@ export function SimulacionPage() {
                     onChange={(e) => setTime("horaInicio", e.target.value)}
                   />
                 </td>
-                <td className="sim-calc" title="Inicio + duración noqueo (columna I)">
+                <td className="sim-calc" title="Última pesada − 30 min">
                   {toHHMM(calc.ultimaNoqueada) || "—"}
                 </td>
                 <td className="sim-calc" title="Inicio + tiempo laborado (=D7+D9 Excel)">

@@ -47,6 +47,14 @@ export function addHoursToTime(horaInicio: string, hours: number): string {
   return minutesToTime(startMin + hours * 60);
 }
 
+export function subtractMinutesFromTime(time: string, minutes: number): string {
+  const startMin = timeToMinutes(time);
+  if (startMin === null || !Number.isFinite(minutes) || minutes <= 0) return '';
+  let total = startMin - minutes;
+  if (total < 0) total += 24 * 60;
+  return minutesToTime(total);
+}
+
 export function toHHMM(timeStr: string): string {
   if (!timeStr?.trim()) return '';
   return timeStr.trim().slice(0, 5);
@@ -68,6 +76,9 @@ const r4 = (n: number) => Math.round(n * 10000) / 10000;
 /** Valor fijo columna F — VACIADO LÍNEA (Hr) en hoja SIMULACION. */
 export const VACIADO_LINEA_HR = 0.49;
 
+/** Minutos que se descuentan de la última pesada para obtener la última noqueada. */
+export const DESFASE_NOQUEO_PESADA_MIN = 30;
+
 export function calcSimulacion(input: SimulacionInput): SimulacionCalculada {
   const reses = Number(input.reses) || 0;
   const velocidadBruta = Number(input.velocidadBruta) || 0;
@@ -85,12 +96,12 @@ export function calcSimulacion(input: SimulacionInput): SimulacionCalculada {
 
   // Control de tiempos (Excel SIMULACION filas 7–9): solo D7 es entrada manual.
   const ultimaPesada = addHoursToTime(input.horaInicio, duracionDeseadaHr);
-  const ultimaNoqueada = addHoursToTime(input.horaInicio, duracionNoqueoHr);
+  const ultimaNoqueada = ultimaPesada
+    ? subtractMinutesFromTime(ultimaPesada, DESFASE_NOQUEO_PESADA_MIN)
+    : '';
   const tiempoLaborado = duracionDeseadaHr > 0 ? minutesToTime(duracionDeseadaHr * 60) : '';
   const desfaseMin =
-    duracionDeseadaHr > 0 && duracionNoqueoHr > 0
-      ? (duracionDeseadaHr - duracionNoqueoHr) * 60
-      : null;
+    ultimaPesada && ultimaNoqueada ? diffTimes(ultimaPesada, ultimaNoqueada) : null;
 
   return {
     ...input,

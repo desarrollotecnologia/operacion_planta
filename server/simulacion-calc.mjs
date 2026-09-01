@@ -8,6 +8,9 @@
 /** Valor fijo columna F — VACIADO LÍNEA (Hr). */
 export const VACIADO_LINEA_HR = 0.49;
 
+/** Minutos que se descuentan de la última pesada para obtener la última noqueada. */
+export const DESFASE_NOQUEO_PESADA_MIN = 30;
+
 function pad2(n) {
   return String(Math.floor(n)).padStart(2, '0');
 }
@@ -48,6 +51,14 @@ export function addHoursToTime(horaInicio, hours) {
   return minutesToTime(startMin + hours * 60);
 }
 
+export function subtractMinutesFromTime(time, minutes) {
+  const startMin = timeToMinutes(time);
+  if (startMin === null || !Number.isFinite(minutes) || minutes <= 0) return '';
+  let total = startMin - minutes;
+  if (total < 0) total += 24 * 60;
+  return minutesToTime(total);
+}
+
 export function calcSimulacion(input) {
   const reses = Number(input.reses) || 0;
   const velocidadBruta = Number(input.velocidadBruta) || 0;
@@ -66,12 +77,12 @@ export function calcSimulacion(input) {
     velocidadNetaNoqueo > 0 ? Math.round(3600 / velocidadNetaNoqueo) : 0;
 
   const ultimaPesada = addHoursToTime(horaInicio, duracionDeseadaHr);
-  const ultimaNoqueada = addHoursToTime(horaInicio, duracionNoqueoHr);
+  const ultimaNoqueada = ultimaPesada
+    ? subtractMinutesFromTime(ultimaPesada, DESFASE_NOQUEO_PESADA_MIN)
+    : '';
   const tiempoLaborado = duracionDeseadaHr > 0 ? minutesToTime(duracionDeseadaHr * 60) : '';
   const desfaseMin =
-    duracionDeseadaHr > 0 && duracionNoqueoHr > 0
-      ? (duracionDeseadaHr - duracionNoqueoHr) * 60
-      : null;
+    ultimaPesada && ultimaNoqueada ? diffTimes(ultimaPesada, ultimaNoqueada) : null;
 
   return {
     reses,
