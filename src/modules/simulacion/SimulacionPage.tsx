@@ -212,7 +212,7 @@ export function SimulacionPage() {
           </table>
         </div>
 
-        <p className="sim-block-label">Control de tiempos (filas 7–10)</p>
+        <p className="sim-block-label">Proyección de Beneficio</p>
 
         <div className="sim-sheet sim-sheet-inline sim-times-wrap">
           <table className="sim-times-vertical" aria-label="Control de tiempos">
