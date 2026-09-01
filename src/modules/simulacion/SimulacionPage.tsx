@@ -3,7 +3,7 @@ import { PageHeader } from "../../components/ui";
 import { useCierreStore } from "../../store/CierreStore";
 import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { api, ApiError } from "../../lib/api";
-import { calcBloquesSimulacion, calcSimulacion, fmtPctExcel, SIMULACION_VACIA, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
+import { calcBloquesSimulacion, calcSimulacion, fmtPctExcel, SIMULACION_VACIA, toHHMM, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
 import type { SimulacionInput } from "../../data/types";
 import "../../components/ui.css";
 import "./simulacion.css";
@@ -15,8 +15,8 @@ function toFormInput(data: Partial<SimulacionInput>): SimulacionInput {
     paradaProgramadaHr: data.paradaProgramadaHr ?? SIMULACION_VACIA.paradaProgramadaHr,
     vaciadoLineaHr: VACIADO_LINEA_HR,
     horaInicio: data.horaInicio ?? SIMULACION_VACIA.horaInicio,
-    ultimaNoqueada: data.ultimaNoqueada ?? "",
-    ultimaPesada: data.ultimaPesada ?? "",
+    ultimaNoqueada: "",
+    ultimaPesada: "",
   };
 }
 
@@ -44,7 +44,7 @@ export function SimulacionPage() {
     setErrorGuardado(null);
   }, []);
 
-  const setTime = useCallback((key: "horaInicio" | "ultimaNoqueada" | "ultimaPesada", value: string) => {
+  const setTime = useCallback((key: "horaInicio", value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setMensaje(null);
     setErrorGuardado(null);
@@ -56,7 +56,12 @@ export function SimulacionPage() {
     setErrorGuardado(null);
     setMensaje(null);
     try {
-      await api.guardarSimulacion(selectedFecha, { ...form, vaciadoLineaHr: VACIADO_LINEA_HR });
+      await api.guardarSimulacion(selectedFecha, {
+        ...form,
+        vaciadoLineaHr: VACIADO_LINEA_HR,
+        ultimaNoqueada: toHHMM(calc.ultimaNoqueada),
+        ultimaPesada: toHHMM(calc.ultimaPesada),
+      });
       await recargar();
       setMensaje("Simulación guardada y sincronizada con el cierre del día.");
     } catch (err) {
@@ -240,23 +245,13 @@ export function SimulacionPage() {
                     onChange={(e) => setTime("horaInicio", e.target.value)}
                   />
                 </td>
-                <td>
-                  <input
-                    className="sim-input sim-input-time"
-                    type="time"
-                    value={form.ultimaNoqueada}
-                    onChange={(e) => setTime("ultimaNoqueada", e.target.value)}
-                  />
+                <td className="sim-calc" title="Inicio + duración noqueo (columna I)">
+                  {toHHMM(calc.ultimaNoqueada) || "—"}
                 </td>
-                <td>
-                  <input
-                    className="sim-input sim-input-time"
-                    type="time"
-                    value={form.ultimaPesada}
-                    onChange={(e) => setTime("ultimaPesada", e.target.value)}
-                  />
+                <td className="sim-calc" title="Inicio + tiempo laborado (=D7+D9 Excel)">
+                  {toHHMM(calc.ultimaPesada) || "—"}
                 </td>
-                <td className="sim-calc" title="Última pesada − hora inicio">
+                <td className="sim-calc" title="= G4/24 (duración deseada)">
                   {calc.tiempoLaborado || "—"}
                 </td>
               </tr>

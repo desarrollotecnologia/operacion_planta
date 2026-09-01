@@ -41,6 +41,18 @@ export function minutesToTime(totalMin: number): string {
   return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
 }
 
+export function addHoursToTime(horaInicio: string, hours: number): string {
+  const startMin = timeToMinutes(horaInicio);
+  if (startMin === null || !Number.isFinite(hours) || hours <= 0) return '';
+  return minutesToTime(startMin + hours * 60);
+}
+
+export function toHHMM(timeStr: string): string {
+  if (!timeStr?.trim()) return '';
+  return timeStr.trim().slice(0, 5);
+}
+
+/** fin − inicio; si cruza medianoche suma 24 h. */
 export function diffTimes(fin: string, inicio: string): number | null {
   const a = timeToMinutes(fin);
   const b = timeToMinutes(inicio);
@@ -71,11 +83,19 @@ export function calcSimulacion(input: SimulacionInput): SimulacionCalculada {
   const minutosPorRes = resesPorMin > 0 ? 1 / resesPorMin : 0;
   const segundosPorRes = velocidadNetaNoqueo > 0 ? Math.round(3600 / velocidadNetaNoqueo) : 0;
 
-  const tiempoLaboradoMin = diffTimes(input.ultimaPesada, input.horaInicio);
-  const desfaseMin = diffTimes(input.ultimaPesada, input.ultimaNoqueada);
+  // Control de tiempos (Excel SIMULACION filas 7–9): solo D7 es entrada manual.
+  const ultimaPesada = addHoursToTime(input.horaInicio, duracionDeseadaHr);
+  const ultimaNoqueada = addHoursToTime(input.horaInicio, duracionNoqueoHr);
+  const tiempoLaborado = duracionDeseadaHr > 0 ? minutesToTime(duracionDeseadaHr * 60) : '';
+  const desfaseMin =
+    duracionDeseadaHr > 0 && duracionNoqueoHr > 0
+      ? (duracionDeseadaHr - duracionNoqueoHr) * 60
+      : null;
 
   return {
     ...input,
+    ultimaNoqueada,
+    ultimaPesada,
     vaciadoLineaHr: VACIADO_LINEA_HR,
     duracionDeseadaHr: r4(duracionDeseadaHr),
     duracionEfectivaHr: r4(duracionEfectivaHr),
@@ -86,9 +106,9 @@ export function calcSimulacion(input: SimulacionInput): SimulacionCalculada {
     minutosPorRes: r4(minutosPorRes),
     minPorResTexto: minutesToTime(minutosPorRes),
     segundosPorRes,
-    tiempoLaborado: tiempoLaboradoMin === null ? '' : minutesToTime(tiempoLaboradoMin),
+    tiempoLaborado,
     desfasePesadaNoqueo: desfaseMin === null ? '' : minutesToTime(desfaseMin),
-    horasLaboradas: tiempoLaboradoMin === null ? 0 : r4(tiempoLaboradoMin / 60),
+    horasLaboradas: r4(duracionDeseadaHr),
   };
 }
 

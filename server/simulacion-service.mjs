@@ -7,11 +7,6 @@ import { toSqlTime } from './mappers.mjs';
 import { asDate, asInt, asNumber, asTime, badRequest, notFound } from './validate.mjs';
 import { getSimulacion } from './build-cierre-vista.mjs';
 
-function asOptionalTime(value, field) {
-  if (value === undefined || value === null || value === '') return '';
-  return asTime(value, field);
-}
-
 function parseSimulacionBody(body, fechaParam) {
   return {
     fecha: asDate(body.fecha ?? fechaParam, 'fecha'),
@@ -24,9 +19,14 @@ function parseSimulacionBody(body, fechaParam) {
     }),
     vaciadoLineaHr: VACIADO_LINEA_HR,
     horaInicio: asTime(body.horaInicio, 'horaInicio'),
-    ultimaNoqueada: asOptionalTime(body.ultimaNoqueada, 'ultimaNoqueada'),
-    ultimaPesada: asOptionalTime(body.ultimaPesada, 'ultimaPesada'),
+    ultimaNoqueada: '',
+    ultimaPesada: '',
   };
+}
+
+function toHHMM(timeStr) {
+  if (!timeStr?.trim()) return '';
+  return timeStr.trim().slice(0, 5);
 }
 
 export async function saveSimulacion(fechaParam, body) {
@@ -45,7 +45,9 @@ export async function saveSimulacion(fechaParam, body) {
 
   const calc = calcSimulacion(input);
   const paradaMin = Math.round(input.paradaProgramadaHr * 60);
-  const horaFin = input.ultimaPesada ? toSqlTime(input.ultimaPesada) : cierreRow.hora_fin;
+  const horaFin = calc.ultimaPesada ? toSqlTime(toHHMM(calc.ultimaPesada)) : cierreRow.hora_fin;
+  const ultimaNoqueada = calc.ultimaNoqueada ? toSqlTime(toHHMM(calc.ultimaNoqueada)) : null;
+  const ultimaPesada = calc.ultimaPesada ? toSqlTime(toHHMM(calc.ultimaPesada)) : null;
 
   await query(
     `UPDATE cierre_diario SET
@@ -98,8 +100,8 @@ export async function saveSimulacion(fechaParam, body) {
       input.paradaProgramadaHr,
       input.vaciadoLineaHr,
       toSqlTime(input.horaInicio),
-      input.ultimaNoqueada ? toSqlTime(input.ultimaNoqueada) : null,
-      input.ultimaPesada ? toSqlTime(input.ultimaPesada) : null,
+      ultimaNoqueada,
+      ultimaPesada,
       calc.duracionDeseadaHr,
       calc.duracionEfectivaHr,
       calc.duracionNoqueoHr,

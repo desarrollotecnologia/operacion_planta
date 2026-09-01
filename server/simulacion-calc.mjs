@@ -1,6 +1,7 @@
 /**
  * Formulas de la hoja SIMULACION (CIERRE DIARIO DE BENEFICIO).
- * Entradas verdes: reses, vel. bruta, parada, hora inicio, ultima noqueada/pesada.
+ * Entradas verdes: reses, vel. bruta, parada, hora inicio.
+ * Control de tiempos: solo hora inicio es manual; el resto se calcula (filas 7–9).
  * VACIADO LÍNEA (F) = constante 0.49 hr.
  */
 
@@ -41,14 +42,18 @@ export function diffTimes(fin, inicio) {
   return d;
 }
 
+export function addHoursToTime(horaInicio, hours) {
+  const startMin = timeToMinutes(horaInicio);
+  if (startMin === null || !Number.isFinite(hours) || hours <= 0) return '';
+  return minutesToTime(startMin + hours * 60);
+}
+
 export function calcSimulacion(input) {
   const reses = Number(input.reses) || 0;
   const velocidadBruta = Number(input.velocidadBruta) || 0;
   const paradaProgramadaHr = Number(input.paradaProgramadaHr) || 0;
   const vaciadoLineaHr = VACIADO_LINEA_HR;
   const horaInicio = input.horaInicio ?? '';
-  const ultimaNoqueada = input.ultimaNoqueada ?? '';
-  const ultimaPesada = input.ultimaPesada ?? '';
 
   const duracionDeseadaHr = velocidadBruta > 0 ? reses / velocidadBruta : 0;
   const duracionEfectivaHr = duracionDeseadaHr - paradaProgramadaHr;
@@ -60,8 +65,13 @@ export function calcSimulacion(input) {
   const segundosPorRes =
     velocidadNetaNoqueo > 0 ? Math.round(3600 / velocidadNetaNoqueo) : 0;
 
-  const tiempoLaboradoMin = diffTimes(ultimaPesada, horaInicio);
-  const desfaseMin = diffTimes(ultimaPesada, ultimaNoqueada);
+  const ultimaPesada = addHoursToTime(horaInicio, duracionDeseadaHr);
+  const ultimaNoqueada = addHoursToTime(horaInicio, duracionNoqueoHr);
+  const tiempoLaborado = duracionDeseadaHr > 0 ? minutesToTime(duracionDeseadaHr * 60) : '';
+  const desfaseMin =
+    duracionDeseadaHr > 0 && duracionNoqueoHr > 0
+      ? (duracionDeseadaHr - duracionNoqueoHr) * 60
+      : null;
 
   return {
     reses,
@@ -80,12 +90,9 @@ export function calcSimulacion(input) {
     minutosPorRes: round4(minutosPorRes),
     minPorResTexto: minutesToTime(minutosPorRes),
     segundosPorRes,
-    tiempoLaborado:
-      tiempoLaboradoMin === null ? '' : minutesToTime(tiempoLaboradoMin),
-    desfasePesadaNoqueo:
-      desfaseMin === null ? '' : minutesToTime(desfaseMin),
-    horasLaboradas:
-      tiempoLaboradoMin === null ? 0 : round4(tiempoLaboradoMin / 60),
+    tiempoLaborado,
+    desfasePesadaNoqueo: desfaseMin === null ? '' : minutesToTime(desfaseMin),
+    horasLaboradas: round4(duracionDeseadaHr),
   };
 }
 
