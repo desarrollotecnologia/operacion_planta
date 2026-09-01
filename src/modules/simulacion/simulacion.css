@@ -287,19 +287,37 @@
   background: white;
 }
 
+.sim-times-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  padding-bottom: 0.5rem;
+}
+
+.sim-times-title {
+  border-top: none;
+  text-align: center;
+  width: min(18rem, 100%);
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .sim-times-wrap {
-  padding: 0.5rem 0.75rem 0.75rem;
+  padding: 0.35rem 0 0.75rem;
+  width: min(18rem, 100%);
 }
 
 .sim-times-vertical {
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  width: 100%;
 }
 
 .sim-times-vertical th,
 .sim-times-vertical td {
   border: 2px solid #1a1a1a;
-  padding: 0.4rem 0.75rem;
+  padding: 0.32rem 0.45rem;
   text-align: center;
   vertical-align: middle;
   font-weight: 700;
@@ -308,15 +326,15 @@
 
 .sim-times-vertical th {
   background: white;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  min-width: 11rem;
+  width: 48%;
 }
 
 .sim-times-vertical td {
-  min-width: 10.5rem;
+  width: 52%;
 }
 
 .sim-times-editable {

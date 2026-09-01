@@ -212,9 +212,10 @@ export function SimulacionPage() {
           </table>
         </div>
 
-        <p className="sim-block-label">Proyección de Beneficio</p>
+        <section className="sim-times-section">
+          <p className="sim-block-label sim-times-title">Proyección de Beneficio</p>
 
-        <div className="sim-sheet sim-sheet-inline sim-times-wrap">
+          <div className="sim-sheet sim-sheet-inline sim-times-wrap">
           <table className="sim-times-vertical" aria-label="Control de tiempos">
             <tbody>
               <tr>
@@ -250,6 +251,7 @@ export function SimulacionPage() {
             </tbody>
           </table>
         </div>
+        </section>
 
         <p className="sim-block-label">Tolerancias de calidad</p>
 
