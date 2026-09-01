@@ -21,6 +21,11 @@ function parseSimulacionBody(body, fechaParam) {
     horaInicio: asTime(body.horaInicio, 'horaInicio'),
     ultimaNoqueada: '',
     ultimaPesada: '',
+    resesSacrificadas: asInt(body.resesSacrificadas, 'resesSacrificadas', {
+      min: 0,
+      max: 100000,
+      fallback: 0,
+    }),
   };
 }
 
@@ -73,13 +78,14 @@ export async function saveSimulacion(fechaParam, body) {
 
   await query(
     `INSERT INTO simulacion_dia (
-       cierre_id, reses, velocidad_bruta, parada_programada_hr, vaciado_linea_hr,
+       cierre_id, reses, reses_sacrificadas, velocidad_bruta, parada_programada_hr, vaciado_linea_hr,
        hora_inicio, ultima_noqueada, ultima_pesada,
        duracion_deseada_hr, duracion_efectiva_hr, duracion_noqueo_hr,
        velocidad_neta, velocidad_neta_noqueo, reses_por_min, segundos_por_res
-     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
      ON DUPLICATE KEY UPDATE
        reses                 = VALUES(reses),
+       reses_sacrificadas    = VALUES(reses_sacrificadas),
        velocidad_bruta       = VALUES(velocidad_bruta),
        parada_programada_hr  = VALUES(parada_programada_hr),
        vaciado_linea_hr      = VALUES(vaciado_linea_hr),
@@ -96,6 +102,7 @@ export async function saveSimulacion(fechaParam, body) {
     [
       cierreRow.id,
       input.reses,
+      input.resesSacrificadas,
       input.velocidadBruta,
       input.paradaProgramadaHr,
       input.vaciadoLineaHr,

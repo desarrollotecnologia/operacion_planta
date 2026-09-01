@@ -219,6 +219,35 @@
   padding: 0.5rem 0.75rem 0.75rem;
 }
 
+.sim-lower-blocks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.sim-times-section,
+.sim-tol-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.sim-times-title,
+.sim-tol-title {
+  border-top: none;
+  text-align: left;
+  width: auto;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sim-tol-wrap {
+  padding: 0;
+}
+
 .sim-sheet-inline {
   padding: 0;
   overflow: visible;
@@ -288,19 +317,7 @@
 }
 
 .sim-times-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-top: 1px solid var(--line);
-  padding-bottom: 0.5rem;
-}
-
-.sim-times-title {
-  border-top: none;
-  text-align: center;
-  width: min(18rem, 100%);
-  padding-left: 0;
-  padding-right: 0;
+  padding-bottom: 0;
 }
 
 .sim-times-wrap {
@@ -356,6 +373,78 @@
 .sim-input-cell:focus {
   outline: none;
   box-shadow: inset 0 0 0 2px #2e7d32;
+}
+
+.sim-sac-section {
+  padding: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.sim-sac-grid {
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  max-width: 28rem;
+}
+
+.sim-sac-grid th,
+.sim-sac-grid td {
+  border: 1px solid #1a1a1a;
+  padding: 0.35rem 0.55rem;
+  text-align: center;
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-sac-title {
+  background: #1b5e20;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.6rem;
+}
+
+.sim-sac-timestamp {
+  background: #c8e6c9;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.74rem;
+}
+
+.sim-sac-head th {
+  background: #c8e6c9;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sim-sac-grid tbody td:first-child {
+  width: 2rem;
+  font-weight: 700;
+}
+
+.sim-sac-item {
+  text-align: left;
+  font-weight: 600;
+  white-space: normal;
+}
+
+.sim-sac-editable {
+  padding: 0;
+  background: var(--sim-green);
+}
+
+.sim-sac-input {
+  width: 100%;
+  min-height: 2rem;
+  border: none;
+  background: transparent;
+}
+
+.sim-sac-highlight {
+  background: #c8e6c9;
+  font-weight: 700;
 }
 
 @media (max-width: 900px) {

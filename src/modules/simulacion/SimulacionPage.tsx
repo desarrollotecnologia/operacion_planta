@@ -3,7 +3,7 @@ import { PageHeader } from "../../components/ui";
 import { useCierreStore } from "../../store/CierreStore";
 import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { api, ApiError } from "../../lib/api";
-import { calcBloquesSimulacion, calcSimulacion, fmtPctExcel, formatClockTimeAmPm, SIMULACION_VACIA, toHHMM, toHMS, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
+import { calcBloquesSimulacion, calcResumenSacrificio, calcSimulacion, fmtPctExcel, fmtResumenTimestamp, formatClockTimeAmPm, SIMULACION_VACIA, toHHMM, toHMS, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
 import type { SimulacionInput } from "../../data/types";
 import "../../components/ui.css";
 import "./simulacion.css";
@@ -17,10 +17,11 @@ function toFormInput(data: Partial<SimulacionInput>): SimulacionInput {
     horaInicio: data.horaInicio ?? SIMULACION_VACIA.horaInicio,
     ultimaNoqueada: "",
     ultimaPesada: "",
+    resesSacrificadas: data.resesSacrificadas ?? SIMULACION_VACIA.resesSacrificadas,
   };
 }
 
-type NumKey = "reses" | "velocidadBruta" | "paradaProgramadaHr";
+type NumKey = "reses" | "velocidadBruta" | "paradaProgramadaHr" | "resesSacrificadas";
 
 export function SimulacionPage() {
   const { selectedFecha } = useCierreStore();
@@ -36,6 +37,10 @@ export function SimulacionPage() {
 
   const calc = useMemo(() => calcSimulacion(form), [form]);
   const bloques = useMemo(() => calcBloquesSimulacion(calc.reses), [calc.reses]);
+  const resumen = useMemo(
+    () => calcResumenSacrificio(calc, form.resesSacrificadas),
+    [calc, form.resesSacrificadas],
+  );
 
   const setNum = useCallback((key: NumKey, raw: string) => {
     const n = raw === "" ? 0 : Number(raw);
@@ -59,6 +64,7 @@ export function SimulacionPage() {
       await api.guardarSimulacion(selectedFecha, {
         ...form,
         vaciadoLineaHr: VACIADO_LINEA_HR,
+        resesSacrificadas: form.resesSacrificadas,
         ultimaNoqueada: toHHMM(calc.ultimaNoqueada),
         ultimaPesada: toHHMM(calc.ultimaPesada),
       });
@@ -212,86 +218,152 @@ export function SimulacionPage() {
           </table>
         </div>
 
-        <section className="sim-times-section">
-          <p className="sim-block-label sim-times-title">Proyección de Beneficio</p>
+        <div className="sim-lower-blocks">
+          <section className="sim-times-section">
+            <p className="sim-block-label sim-times-title">Proyección de Beneficio</p>
 
-          <div className="sim-sheet sim-sheet-inline sim-times-wrap">
-          <table className="sim-times-vertical" aria-label="Control de tiempos">
+            <div className="sim-sheet sim-sheet-inline sim-times-wrap">
+              <table className="sim-times-vertical" aria-label="Control de tiempos">
+                <tbody>
+                  <tr>
+                    <th scope="row">HORA DE INICIO</th>
+                    <td className="sim-times-editable">
+                      <input
+                        className="sim-input sim-input-time sim-input-cell"
+                        type="time"
+                        title="D7 — Hora de inicio"
+                        value={form.horaInicio}
+                        onChange={(e) => setTime("horaInicio", e.target.value)}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">ÚLTIMA NOQUEADA</th>
+                    <td className="sim-times-calc" title="Última pesada − 30 min">
+                      {toHMS(calc.ultimaNoqueada) || "—"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">ÚLTIMA PESADA</th>
+                    <td className="sim-times-calc" title="Inicio + tiempo laborado">
+                      {formatClockTimeAmPm(calc.ultimaPesada) || "—"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">TIEMPO LABORADO</th>
+                    <td className="sim-times-calc" title="= G4/24 (duración deseada)">
+                      {toHMS(calc.tiempoLaborado) || "—"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="sim-tol-section">
+            <p className="sim-block-label sim-tol-title">Tolerancias de calidad</p>
+
+            <div className="sim-sheet sim-sheet-inline sim-tol-wrap">
+              <table className="sim-tol-grid" aria-label="Tolerancias de calidad">
+                <thead>
+                  <tr>
+                    <th>TOLERANCIA</th>
+                    <th>PIELES/ C. GRASA</th>
+                    <th>C.PIERNA/S.ROTA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="sim-tol-pct" title="F12 = (F13/F9)×100">
+                      {fmtPctExcel(bloques.toleranciaPct[0])}
+                    </td>
+                    <td className="sim-tol-pct" title="G12 = (G13/G9)×100">
+                      {fmtPctExcel(bloques.toleranciaPct[1])}
+                    </td>
+                    <td className="sim-tol-pct" title="H12 = (H13/G9)×100">
+                      {fmtPctExcel(bloques.toleranciaPct[2])}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="sim-tol-tope" title="F13 = F9 × 0,007">
+                      {bloques.toleranciaTope[0]}
+                    </td>
+                    <td className="sim-tol-tope" title="G13 = G9 × 0,015">
+                      {bloques.toleranciaTope[1]}
+                    </td>
+                    <td className="sim-tol-tope" title="H13 = G9 × 0,01">
+                      {bloques.toleranciaTope[2]}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <section className="sim-sac-section">
+          <table className="sim-sac-grid" aria-label="Resumen parcial de sacrificio">
+            <thead>
+              <tr>
+                <th colSpan={3} className="sim-sac-title">
+                  RESUMEN PARCIAL DE SACRIFICIO
+                </th>
+              </tr>
+              <tr>
+                <th colSpan={3} className="sim-sac-timestamp">
+                  {fmtResumenTimestamp()}
+                </th>
+              </tr>
+              <tr className="sim-sac-head">
+                <th>#</th>
+                <th>ITEM</th>
+                <th>CIFRA/TOTAL</th>
+              </tr>
+            </thead>
             <tbody>
               <tr>
-                <th scope="row">HORA DE INICIO</th>
-                <td className="sim-times-editable">
+                <td>1</td>
+                <td className="sim-sac-item">Hora de inicio</td>
+                <td>{resumen.horaInicio || "—"}</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td className="sim-sac-item">Total de sacrificio</td>
+                <td>{resumen.totalSacrificio}</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td className="sim-sac-item">Reses sacrificadas</td>
+                <td className="sim-sac-editable">
                   <input
-                    className="sim-input sim-input-time sim-input-cell"
-                    type="time"
-                    title="D7 — Hora de inicio"
-                    value={form.horaInicio}
-                    onChange={(e) => setTime("horaInicio", e.target.value)}
+                    className="sim-input sim-sac-input"
+                    type="number"
+                    min={0}
+                    max={form.reses || undefined}
+                    title="Entrada manual (Excel E8)"
+                    value={form.resesSacrificadas || ""}
+                    onChange={(e) => setNum("resesSacrificadas", e.target.value)}
                   />
                 </td>
               </tr>
               <tr>
-                <th scope="row">ÚLTIMA NOQUEADA</th>
-                <td className="sim-times-calc" title="Última pesada − 30 min">
-                  {toHMS(calc.ultimaNoqueada) || "—"}
-                </td>
+                <td>4</td>
+                <td className="sim-sac-item">Reses faltantes</td>
+                <td>{resumen.resesFaltantes}</td>
               </tr>
               <tr>
-                <th scope="row">ÚLTIMA PESADA</th>
-                <td className="sim-times-calc" title="Inicio + tiempo laborado">
-                  {formatClockTimeAmPm(calc.ultimaPesada) || "—"}
-                </td>
+                <td>5</td>
+                <td className="sim-sac-item">Velocidad de línea (Reses/hora)</td>
+                <td>{resumen.velocidadLinea}</td>
               </tr>
               <tr>
-                <th scope="row">TIEMPO LABORADO</th>
-                <td className="sim-times-calc" title="= G4/24 (duración deseada)">
-                  {toHMS(calc.tiempoLaborado) || "—"}
-                </td>
+                <td>6</td>
+                <td className="sim-sac-item">Hora estimada de finalización</td>
+                <td className="sim-sac-highlight">{resumen.horaEstimadaFin || "—"}</td>
               </tr>
             </tbody>
           </table>
-        </div>
         </section>
-
-        <p className="sim-block-label">Tolerancias de calidad</p>
-
-        <div className="sim-extra-blocks">
-          <div className="sim-sheet sim-sheet-inline">
-            <table className="sim-tol-grid" aria-label="Tolerancias de calidad">
-              <thead>
-                <tr>
-                  <th>TOLERANCIA</th>
-                  <th>PIELES/ C. GRASA</th>
-                  <th>C.PIERNA/S.ROTA</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="sim-tol-pct" title="F12 = (F13/F9)×100">
-                    {fmtPctExcel(bloques.toleranciaPct[0])}
-                  </td>
-                  <td className="sim-tol-pct" title="G12 = (G13/G9)×100">
-                    {fmtPctExcel(bloques.toleranciaPct[1])}
-                  </td>
-                  <td className="sim-tol-pct" title="H12 = (H13/G9)×100">
-                    {fmtPctExcel(bloques.toleranciaPct[2])}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="sim-tol-tope" title="F13 = F9 × 0,007">
-                    {bloques.toleranciaTope[0]}
-                  </td>
-                  <td className="sim-tol-tope" title="G13 = G9 × 0,015">
-                    {bloques.toleranciaTope[1]}
-                  </td>
-                  <td className="sim-tol-tope" title="H13 = G9 × 0,01">
-                    {bloques.toleranciaTope[2]}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
 
         <div className="sim-actions">
           <button type="button" className="btn btn-primary" disabled={guardando} onClick={() => void guardar()}>

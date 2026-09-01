@@ -144,6 +144,7 @@ CREATE TABLE IF NOT EXISTS simulacion_dia (
   id                    CHAR(36)     NOT NULL DEFAULT (UUID()),
   cierre_id             CHAR(36)     NOT NULL,
   reses                 INT          NOT NULL,
+  reses_sacrificadas    INT          NULL DEFAULT 0,
   velocidad_bruta       DECIMAL(8,2) NOT NULL,
   parada_programada_hr  DECIMAL(8,4) NOT NULL DEFAULT 0,
   vaciado_linea_hr      DECIMAL(8,4) NOT NULL DEFAULT 0,

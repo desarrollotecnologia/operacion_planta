@@ -74,6 +74,8 @@ export type SimulacionInput = {
   horaInicio: string;
   ultimaNoqueada: string;
   ultimaPesada: string;
+  /** Entrada manual — hoja RESUMEN DEL DIA E8. */
+  resesSacrificadas: number;
 };
 
 export type SimulacionData = SimulacionInput & {

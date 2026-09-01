@@ -60,6 +60,7 @@ function simulacionInputFromRow(row) {
     horaInicio: toHHMM(row.hora_inicio) ?? '',
     ultimaNoqueada: row.ultima_noqueada ? toHHMM(row.ultima_noqueada) : '',
     ultimaPesada: row.ultima_pesada ? toHHMM(row.ultima_pesada) : '',
+    resesSacrificadas: Number(row.reses_sacrificadas) || 0,
   };
 }
 
@@ -77,6 +78,7 @@ function simulacionFromCierre(cierre) {
     horaInicio: toHHMM(cierre.hora_inicio) ?? '14:00',
     ultimaNoqueada: '',
     ultimaPesada: toHHMM(cierre.hora_fin) ?? '',
+    resesSacrificadas: 0,
   });
 }
 

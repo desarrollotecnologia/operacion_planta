@@ -174,6 +174,51 @@ export function calcBloquesSimulacion(reses: number): SimulacionBloques {
   };
 }
 
+/** Ajuste Excel O23 = Q23 − 0,01875 días (27 min) sobre última pesada. */
+export const HORA_FIN_AJUSTE_MIN = 27;
+
+export type ResumenSacrificio = {
+  horaInicio: string;
+  totalSacrificio: number;
+  resesSacrificadas: number;
+  resesFaltantes: number;
+  velocidadLinea: number;
+  horaEstimadaFin: string;
+};
+
+export function calcResumenSacrificio(
+  calc: SimulacionCalculada,
+  resesSacrificadas: number,
+): ResumenSacrificio {
+  const total = Number(calc.reses) || 0;
+  const sacrificadas = Math.max(0, Math.min(Number(resesSacrificadas) || 0, total));
+  const horaEstimada = calc.ultimaPesada
+    ? subtractMinutesFromTime(calc.ultimaPesada, HORA_FIN_AJUSTE_MIN)
+    : '';
+
+  return {
+    horaInicio: toHHMM(calc.horaInicio),
+    totalSacrificio: total,
+    resesSacrificadas: sacrificadas,
+    resesFaltantes: Math.max(0, total - sacrificadas),
+    velocidadLinea: Number(calc.velocidadBruta) || 0,
+    horaEstimadaFin: toHHMM(horaEstimada),
+  };
+}
+
+export function fmtResumenTimestamp(date = new Date()): string {
+  return date
+    .toLocaleString('es-CO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+    .replace(',', '');
+}
+
 export function fmtPctExcel(n: number) {
   return n.toLocaleString("es-CO", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
@@ -186,4 +231,5 @@ export const SIMULACION_VACIA: SimulacionInput = {
   horaInicio: '14:00',
   ultimaNoqueada: '',
   ultimaPesada: '',
+  resesSacrificadas: 0,
 };
