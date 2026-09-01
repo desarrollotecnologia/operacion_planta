@@ -116,16 +116,15 @@ export type OperatividadTotales = {
 };
 
 export type CierrePccomIndicadores = {
-  totalBeneficio: number;
   horaInicioCabezas: string;
   horaUltimaViscera: string;
   totalParosHr: number;
   duracionProcesoHr: number;
   rendimientoBruto: number | null;
   rendimientoNeto: number | null;
+  rendimientoPorHombre: number | null;
   paradasProgramadasMin: number;
   tiemposImproductivosMin: number;
-  novedades: string;
 };
 
 export type CierreProcesoData = {

@@ -50,16 +50,15 @@ export type CierreProcesoData = {
   laborandoPccom: LaborandoRow[];
   totalesPccom: { totalPersonas: number; ausentismoPct: number };
   pccom: {
-    totalBeneficio: number;
     horaInicioCabezas: string;
     horaUltimaViscera: string;
     totalParosHr: number;
     duracionProcesoHr: number;
     rendimientoBruto: number | null;
     rendimientoNeto: number | null;
+    rendimientoPorHombre: number | null;
     paradasProgramadasMin: number;
     tiemposImproductivosMin: number;
-    novedades: string;
   };
   operatividadPccom: OperatividadRow[];
 };
@@ -109,16 +108,15 @@ export const cierreProcesoMock: CierreProcesoData = {
   ],
   totalesPccom: { totalPersonas: 52, ausentismoPct: 0.08 },
   pccom: {
-    totalBeneficio: 306,
     horaInicioCabezas: "14:00",
     horaUltimaViscera: "20:18",
     totalParosHr: 1.02,
     duracionProcesoHr: 6.3,
     rendimientoBruto: 60,
     rendimientoNeto: 67,
+    rendimientoPorHombre: 1.24,
     paradasProgramadasMin: 30,
     tiemposImproductivosMin: 61,
-    novedades: "",
   },
   operatividadPccom: [
     { criterio: "LIDER/APOYO", real: 2, pct: 0.0392, dia: 2, diaPct: 0.0392, dif: 0 },

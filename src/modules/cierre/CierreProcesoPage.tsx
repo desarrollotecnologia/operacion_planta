@@ -25,16 +25,15 @@ function indicadoresLinea(c: CierreProcesoData) {
 
 function indicadoresPccom(p: CierrePccomIndicadores) {
   return [
-    ["Total de beneficio", String(p.totalBeneficio)],
     ["Hora inicio cabezas", p.horaInicioCabezas],
     ["Hora última víscera amarrada", p.horaUltimaViscera],
-    ["Total paros (hr)", p.totalParosHr.toFixed(2)],
-    ["Duración proceso (hr)", p.duracionProcesoHr.toFixed(2)],
-    ["Rendimiento bruto (visceras/hr)", p.rendimientoBruto?.toFixed(0) ?? "—"],
-    ["Rendimiento neto (visceras/hr)", p.rendimientoNeto?.toFixed(0) ?? "—"],
+    ["Total paros", p.totalParosHr.toFixed(2)],
+    ["Duración proceso (hrs)", p.duracionProcesoHr.toFixed(2)],
+    ["Rendimiento bruto (visceras/hora)", p.rendimientoBruto?.toFixed(0) ?? "—"],
+    ["Rendimiento neto (visceras/hora)", p.rendimientoNeto?.toFixed(0) ?? "—"],
+    ["Rendimiento (visceras/hr/hombre)", p.rendimientoPorHombre?.toFixed(2) ?? "—"],
     ["Minutos paros programados", String(p.paradasProgramadasMin)],
     ["Minutos paros no programados", String(p.tiemposImproductivosMin)],
-    ["Novedades", p.novedades || "—"],
   ] as const;
 }
 

@@ -230,6 +230,17 @@ export async function getCierreProceso(fecha) {
     [fecha],
   );
 
+  const duracionProcesoHr =
+    consolidado?.duracion_hr === null
+      ? cierre.horasLaboradas
+      : Number(consolidado?.duracion_hr ?? cierre.horasLaboradas);
+  const laborandoPccom =
+    pccomOp.filas.find((r) => r.estadoCodigo === 'LABORANDO')?.personas ?? 0;
+  const rendimientoPorHombre =
+    laborandoPccom > 0 && duracionProcesoHr > 0
+      ? Math.round((cierre.totalBeneficio / (duracionProcesoHr * laborandoPccom)) * 100) / 100
+      : null;
+
   return {
     fecha: cierre.fecha,
     totalBeneficio: cierre.totalBeneficio,
@@ -264,16 +275,15 @@ export async function getCierreProceso(fecha) {
       ausentismoPct: pccomOp.ausentismoPct,
     },
     pccom: {
-      totalBeneficio: cierre.totalBeneficio,
       horaInicioCabezas: cierre.horaInicio,
       horaUltimaViscera: cierre.horaFin,
       totalParosHr: consolidado?.total_paros_hr === null ? 0 : Number(consolidado?.total_paros_hr ?? 0),
-      duracionProcesoHr: consolidado?.duracion_hr === null ? cierre.horasLaboradas : Number(consolidado?.duracion_hr ?? cierre.horasLaboradas),
+      duracionProcesoHr,
       rendimientoBruto: consolidado?.rendimiento_bruto === null ? null : Number(consolidado.rendimiento_bruto),
       rendimientoNeto: consolidado?.rendimiento_neto === null ? null : Number(consolidado.rendimiento_neto),
+      rendimientoPorHombre,
       paradasProgramadasMin: cierre.paradaProgramadaMin,
       tiemposImproductivosMin: cierre.tiempoParadasMin,
-      novedades: consolidado?.novedades_texto ?? cierre.observacion,
     },
     operatividadPccom: [],
   };
