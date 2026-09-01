@@ -3,7 +3,7 @@ import { PageHeader } from "../../components/ui";
 import { useCierreStore } from "../../store/CierreStore";
 import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { api, ApiError } from "../../lib/api";
-import { calcBloquesSimulacion, calcSimulacion, fmtPctExcel, SIMULACION_VACIA, toHHMM, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
+import { calcBloquesSimulacion, calcSimulacion, fmtPctExcel, formatClockTimeAmPm, SIMULACION_VACIA, toHHMM, toHMS, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
 import type { SimulacionInput } from "../../data/types";
 import "../../components/ui.css";
 import "./simulacion.css";
@@ -214,89 +214,46 @@ export function SimulacionPage() {
 
         <p className="sim-block-label">Control de tiempos (filas 7–10)</p>
 
-        <div className="sim-sheet">
-          <table className="sim-grid sim-grid-times" aria-label="Horarios de trabajo">
-            <thead>
-              <tr className="sim-row-letters">
-                <th className="sim-corner" />
-                <th>C</th>
-                <th>D</th>
-                <th>E</th>
-                <th>F</th>
-                <th>G</th>
-              </tr>
-              <tr className="sim-row-labels">
-                <th className="sim-row-num">7</th>
-                <th colSpan={2}>HORA DE INICIO</th>
-                <th>ÚLTIMA NOQUEADA</th>
-                <th>ÚLTIMA PESADA</th>
-                <th>TIEMPO LABORADO</th>
-              </tr>
-            </thead>
+        <div className="sim-sheet sim-sheet-inline sim-times-wrap">
+          <table className="sim-times-vertical" aria-label="Control de tiempos">
             <tbody>
-              <tr className="sim-row-data">
-                <th className="sim-row-num">10</th>
-                <td colSpan={2}>
+              <tr>
+                <th scope="row">HORA DE INICIO</th>
+                <td className="sim-times-editable">
                   <input
-                    className="sim-input sim-input-time"
+                    className="sim-input sim-input-time sim-input-cell"
                     type="time"
                     title="D7 — Hora de inicio"
                     value={form.horaInicio}
                     onChange={(e) => setTime("horaInicio", e.target.value)}
                   />
                 </td>
-                <td className="sim-calc" title="Última pesada − 30 min">
-                  {toHHMM(calc.ultimaNoqueada) || "—"}
-                </td>
-                <td className="sim-calc" title="Inicio + tiempo laborado (=D7+D9 Excel)">
-                  {toHHMM(calc.ultimaPesada) || "—"}
-                </td>
-                <td className="sim-calc" title="= G4/24 (duración deseada)">
-                  {calc.tiempoLaborado || "—"}
+              </tr>
+              <tr>
+                <th scope="row">ÚLTIMA NOQUEADA</th>
+                <td className="sim-times-calc" title="Última pesada − 30 min">
+                  {toHMS(calc.ultimaNoqueada) || "—"}
                 </td>
               </tr>
-              <tr className="sim-row-labels">
-                <th className="sim-row-num" />
-                <th colSpan={3}>DESFASE PESADA − NOQUEO</th>
-                <th colSpan={2}>HORAS LABORADAS (decimal)</th>
-              </tr>
-              <tr className="sim-row-data">
-                <th className="sim-row-num" />
-                <td className="sim-calc" colSpan={3} title="Última pesada − última noqueada">
-                  {calc.desfasePesadaNoqueo || "—"}
+              <tr>
+                <th scope="row">ÚLTIMA PESADA</th>
+                <td className="sim-times-calc" title="Inicio + tiempo laborado">
+                  {formatClockTimeAmPm(calc.ultimaPesada) || "—"}
                 </td>
-                <td className="sim-calc" colSpan={2}>
-                  {calc.horasLaboradas.toFixed(4)}
+              </tr>
+              <tr>
+                <th scope="row">TIEMPO LABORADO</th>
+                <td className="sim-times-calc" title="= G4/24 (duración deseada)">
+                  {toHMS(calc.tiempoLaborado) || "—"}
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <p className="sim-block-label">Proyección y tolerancias (filas 8–13)</p>
+        <p className="sim-block-label">Tolerancias de calidad</p>
 
         <div className="sim-extra-blocks">
-          <div className="sim-sheet sim-sheet-inline">
-            <table className="sim-proy-grid" aria-label="Proyección # reses">
-              <tbody>
-                <tr>
-                  <td className="sim-proy-empty" />
-                  <td className="sim-ref sim-proy-ref" title="G8 = C4 (# RESES)">
-                    {bloques.referenciaReses}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="sim-proy-val" title="F9 = G8 × 4">
-                    {bloques.resesX4}
-                  </td>
-                  <td className="sim-proy-val" title="G9 = G8 × 2">
-                    {bloques.resesX2}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
           <div className="sim-sheet sim-sheet-inline">
             <table className="sim-tol-grid" aria-label="Tolerancias de calidad">
               <thead>

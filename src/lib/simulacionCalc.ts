@@ -60,6 +60,29 @@ export function toHHMM(timeStr: string): string {
   return timeStr.trim().slice(0, 5);
 }
 
+/** "HH:MM:SS" completo para horas de reloj o duraciones. */
+export function toHMS(timeStr: string): string {
+  if (!timeStr?.trim()) return '';
+  const parts = timeStr.trim().split(':').map((p) => Number(p));
+  if (parts.some((p) => !Number.isFinite(p))) return timeStr.trim();
+  const [h = 0, m = 0, s = 0] = parts;
+  return `${pad2(h)}:${pad2(m)}:${pad2(Math.floor(s))}`;
+}
+
+/** Hora de reloj en formato Excel: "8:31:52 p. m." */
+export function formatClockTimeAmPm(timeStr: string): string {
+  const mins = timeToMinutes(timeStr);
+  if (mins === null) return '';
+  const totalSec = Math.round(mins * 60);
+  let h = Math.floor(totalSec / 3600) % 24;
+  const rem = totalSec % 3600;
+  const m = Math.floor(rem / 60);
+  const s = rem % 60;
+  const period = h >= 12 ? 'p. m.' : 'a. m.';
+  const h12 = h % 12 || 12;
+  return `${h12}:${pad2(m)}:${pad2(s)} ${period}`;
+}
+
 /** fin − inicio; si cruza medianoche suma 24 h. */
 export function diffTimes(fin: string, inicio: string): number | null {
   const a = timeToMinutes(fin);
