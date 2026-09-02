@@ -3,7 +3,7 @@ import { PageHeader } from "../../components/ui";
 import { useCierreStore } from "../../store/CierreStore";
 import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { api, ApiError } from "../../lib/api";
-import { calcBloquesSimulacion, calcResumenSacrificio, calcSimulacion, fmtPctExcel, fmtResumenTimestamp, formatClockTimeAmPm, SIMULACION_VACIA, toHHMM, toHMS, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
+import { calcBloquesSimulacion, calcResumenSacrificio, calcSimulacion, estadoVelocidadNeta, fmtCeil, fmtPctExcel, fmtResumenTimestamp, SIMULACION_VACIA, toHHMM, toHMS, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
 import type { SimulacionInput } from "../../data/types";
 import "../../components/ui.css";
 import "./simulacion.css";
@@ -41,6 +41,8 @@ export function SimulacionPage() {
     () => calcResumenSacrificio(calc, form.resesSacrificadas),
     [calc, form.resesSacrificadas],
   );
+  const velNetaEstado = estadoVelocidadNeta(calc.velocidadNeta);
+  const velResumenEstado = estadoVelocidadNeta(resumen.velocidadLinea);
 
   const setNum = useCallback((key: NumKey, raw: string) => {
     const n = raw === "" ? 0 : Number(raw);
@@ -183,35 +185,37 @@ export function SimulacionPage() {
                   />
                 </td>
                 <td className="sim-calc" title="F4 — Vaciado línea (fijo)">
-                  {VACIADO_LINEA_HR.toFixed(2)}
+                  {fmtCeil(VACIADO_LINEA_HR)}
                 </td>
                 <td className="sim-calc" title="G = # RESES / Vel. bruta">
-                  {calc.duracionDeseadaHr.toFixed(4)}
+                  {fmtCeil(calc.duracionDeseadaHr)}
                 </td>
                 <td className="sim-calc" title="H = G − parada programada">
-                  {calc.duracionEfectivaHr.toFixed(4)}
+                  {fmtCeil(calc.duracionEfectivaHr)}
                 </td>
                 <td className="sim-calc" title="I = H − vaciado línea">
-                  {calc.duracionNoqueoHr.toFixed(4)}
+                  {fmtCeil(calc.duracionNoqueoHr)}
                 </td>
-                <td className="sim-calc" title="J = # RESES / H">
-                  {calc.velocidadNeta.toFixed(2)}
+                <td
+                  className={`sim-calc sim-vel-neta sim-vel-${velNetaEstado}`}
+                  title="J = # RESES / H — meta 75 Reses/Hr"
+                >
+                  {fmtCeil(calc.velocidadNeta)}
                 </td>
                 <td className="sim-calc" title="K = # RESES / I">
-                  {calc.velocidadNetaNoqueo.toFixed(2)}
+                  {fmtCeil(calc.velocidadNetaNoqueo)}
                 </td>
                 <td className="sim-calc" title="L = K / 60">
-                  {calc.resesPorMin.toFixed(4)}
+                  {fmtCeil(calc.resesPorMin)}
                 </td>
                 <td className="sim-calc" title="M = 1 / L">
-                  <span className="sim-time">{calc.minPorResTexto}</span>
-                  <span className="sim-sub">{calc.minutosPorRes.toFixed(4)} min</span>
+                  {calc.minPorResTexto}
                 </td>
                 <td className="sim-ref" title="Referencia = # RESES">
                   {calc.reses}
                 </td>
                 <td className="sim-calc" title="P = 3600 / K">
-                  {calc.segundosPorRes}
+                  {fmtCeil(calc.segundosPorRes)}
                 </td>
               </tr>
             </tbody>
@@ -246,7 +250,7 @@ export function SimulacionPage() {
                   <tr>
                     <th scope="row">ÚLTIMA PESADA</th>
                     <td className="sim-times-calc" title="Inicio + tiempo laborado">
-                      {formatClockTimeAmPm(calc.ultimaPesada) || "—"}
+                      {toHMS(calc.ultimaPesada) || "—"}
                     </td>
                   </tr>
                   <tr>
@@ -354,7 +358,9 @@ export function SimulacionPage() {
               <tr>
                 <td>5</td>
                 <td className="sim-sac-item">Velocidad de línea (Reses/hora)</td>
-                <td>{resumen.velocidadLinea}</td>
+                <td className={`sim-vel-neta sim-vel-${velResumenEstado}`}>
+                  {resumen.velocidadLinea}
+                </td>
               </tr>
               <tr>
                 <td>6</td>

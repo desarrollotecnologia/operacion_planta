@@ -99,6 +99,24 @@ const r4 = (n: number) => Math.round(n * 10000) / 10000;
 /** Valor fijo columna F — VACIADO LÍNEA (Hr) en hoja SIMULACION. */
 export const VACIADO_LINEA_HR = 0.49;
 
+/** Entero hacia arriba para mostrar sin decimales. */
+export function fmtCeil(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return '0';
+  return String(Math.ceil(n));
+}
+
+/** Meta operativa — velocidad neta (Reses/Hr). */
+export const VELOCIDAD_NETA_META = 75;
+
+export type VelocidadNetaEstado = 'baja' | 'meta' | 'alta';
+
+export function estadoVelocidadNeta(velocidadNeta: number): VelocidadNetaEstado {
+  const v = Math.ceil(Number(velocidadNeta) || 0);
+  if (v < VELOCIDAD_NETA_META) return 'baja';
+  if (v === VELOCIDAD_NETA_META) return 'meta';
+  return 'alta';
+}
+
 /** Minutos que se descuentan de la última pesada para obtener la última noqueada. */
 export const DESFASE_NOQUEO_PESADA_MIN = 30;
 
@@ -201,8 +219,8 @@ export function calcResumenSacrificio(
     totalSacrificio: total,
     resesSacrificadas: sacrificadas,
     resesFaltantes: Math.max(0, total - sacrificadas),
-    velocidadLinea: Number(calc.velocidadBruta) || 0,
-    horaEstimadaFin: toHHMM(horaEstimada),
+    velocidadLinea: Math.ceil(Number(calc.velocidadNeta) || 0),
+    horaEstimadaFin: toHMS(horaEstimada),
   };
 }
 
