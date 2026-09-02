@@ -1,52 +1,117 @@
-import type { CierrePccomIndicadores, CierreProcesoData, OperatividadBeneficioRow, OperatividadTotales } from "../../data/types";
-import { Badge, MetricCard, PageHeader, Panel, formatDate, pct } from "../../components/ui";
+import type {
+  CierrePccomIndicadores,
+  CierreProcesoData,
+  OperatividadBeneficioRow,
+  OperatividadTotales,
+} from "../../data/types";
+import { PageHeader, formatDate, pct } from "../../components/ui";
 import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { useCierreStore } from "../../store/CierreStore";
+import { estadoVelocidadNeta, fmtCeil } from "../../lib/simulacionCalc";
 import "../../components/ui.css";
 import "./cierreProceso.css";
 
-function indicadoresLinea(c: CierreProcesoData) {
-  return [
-    ["Hora de inicio", c.horaInicio],
-    ["Hora fin", c.horaFin],
-    ["Horas laboradas", c.horasLaboradas.toFixed(1)],
-    ["Tardanza de inicio", String(c.tardanzaInicio)],
-    ["Productividad", c.productividad.toFixed(1)],
-    ["Velocidad bruta", c.velocidadBruta.toFixed(1)],
-    ["Tolerancia cero", pct(c.toleranciaCero)],
-    ["Pieles rotas", pct(c.pieles)],
-    ["Cortes en pierna", pct(c.cortePierna)],
-    ["Sobrebarriga rotas", pct(c.sobrebarrigaRota)],
-    ["Cobertura grasa", pct(c.coberturaGrasa)],
-    ["Paradas programadas (min)", String(c.paradasProgramadasMin)],
-    ["Tiempos improductivos (min)", String(c.tiemposImproductivosMin)],
-  ] as const;
+type IndicadorFila = {
+  label: string;
+  value: string;
+  valorClass?: string;
+};
+
+function fmtPct(n: number) {
+  return pct(n);
 }
 
-function indicadoresPccom(p: CierrePccomIndicadores) {
-  return [
-    ["Hora inicio cabezas", p.horaInicioCabezas],
-    ["Hora última víscera amarrada", p.horaUltimaViscera],
-    ["Total paros", p.totalParosHr.toFixed(2)],
-    ["Duración proceso (hrs)", p.duracionProcesoHr.toFixed(2)],
-    ["Rendimiento bruto (visceras/hora)", p.rendimientoBruto?.toFixed(0) ?? "—"],
-    ["Rendimiento neto (visceras/hora)", p.rendimientoNeto?.toFixed(0) ?? "—"],
-    ["Rendimiento (visceras/hr/hombre)", p.rendimientoPorHombre?.toFixed(2) ?? "—"],
-    ["Minutos paros programados", String(p.paradasProgramadasMin)],
-    ["Minutos paros no programados", String(p.tiemposImproductivosMin)],
-  ] as const;
+function fmtNum(n: number) {
+  return fmtCeil(n);
 }
 
-function TablaIndicadores({ filas }: { filas: readonly (readonly [string, string])[] }) {
+function indicadoresLinea(c: CierreProcesoData): IndicadorFila[] {
+  const velNeta = estadoVelocidadNeta(c.velocidadNeta);
+  return [
+    { label: "Total de beneficio", value: String(c.totalBeneficio) },
+    { label: "Hora de inicio", value: c.horaInicio?.slice(0, 5) ?? "—" },
+    { label: "Hora fin", value: c.horaFin?.slice(0, 5) ?? "—" },
+    { label: "O.E.E mes", value: fmtPct(c.oeeMes) },
+    { label: "O.E.E día", value: fmtPct(c.oeeDia) },
+    { label: "Velocidad línea de beneficio", value: fmtNum(c.velocidadLinea) },
+    { label: "Horas laboradas", value: c.horasLaboradas.toFixed(1) },
+    { label: "Tardanza de inicio", value: String(c.tardanzaInicio) },
+    { label: "Productividad", value: fmtNum(c.productividad) },
+    {
+      label: "Velocidad neta",
+      value: fmtNum(c.velocidadNeta),
+      valorClass: `cp-vel-${velNeta}`,
+    },
+    { label: "Velocidad bruta", value: fmtNum(c.velocidadBruta) },
+    { label: "Tolerancia cero", value: fmtPct(c.toleranciaCero) },
+    {
+      label: "Pieles rotas",
+      value: fmtPct(c.pieles),
+      valorClass: c.pieles > 0.05 ? "cp-val-danger" : undefined,
+    },
+    { label: "Cortes en pierna", value: fmtPct(c.cortePierna) },
+    { label: "Sobrebarriga rotas", value: fmtPct(c.sobrebarrigaRota) },
+    { label: "Cobertura grasa", value: fmtPct(c.coberturaGrasa) },
+    { label: "Paradas programadas (min)", value: String(c.paradasProgramadasMin) },
+    {
+      label: "Tiempos improductivos (min)",
+      value: String(c.tiemposImproductivosMin),
+      valorClass: c.tiemposImproductivosMin > 0 ? "cp-val-warn" : undefined,
+    },
+  ];
+}
+
+function indicadoresPccom(p: CierrePccomIndicadores): IndicadorFila[] {
+  return [
+    { label: "Hora inicio cabezas", value: p.horaInicioCabezas?.slice(0, 5) ?? "—" },
+    { label: "Hora última víscera amarrada", value: p.horaUltimaViscera?.slice(0, 5) ?? "—" },
+    { label: "Total paros (hr)", value: fmtNum(p.totalParosHr) },
+    { label: "Duración proceso (hrs)", value: p.duracionProcesoHr.toFixed(2) },
+    { label: "Rendimiento bruto (visceras/hora)", value: p.rendimientoBruto != null ? fmtNum(p.rendimientoBruto) : "—" },
+    { label: "Rendimiento neto (visceras/hora)", value: p.rendimientoNeto != null ? fmtNum(p.rendimientoNeto) : "—" },
+    {
+      label: "Rendimiento (visceras/hr/hombre)",
+      value: p.rendimientoPorHombre != null ? p.rendimientoPorHombre.toFixed(2) : "—",
+    },
+    { label: "Minutos paros programados", value: String(p.paradasProgramadasMin) },
+    {
+      label: "Minutos paros no programados",
+      value: String(p.tiemposImproductivosMin),
+      valorClass: p.tiemposImproductivosMin > 0 ? "cp-val-warn" : undefined,
+    },
+  ];
+}
+
+function TablaIndicadoresExcel({
+  titulo,
+  fecha,
+  filas,
+}: {
+  titulo: string;
+  fecha?: string;
+  filas: IndicadorFila[];
+}) {
   return (
-    <table className="data-table">
+    <table className="cp-sheet cp-ind-sheet">
+      <thead>
+        <tr>
+          <th colSpan={2} className="cp-title">
+            {titulo}
+          </th>
+        </tr>
+        {fecha ? (
+          <tr>
+            <th colSpan={2} className="cp-date">
+              {fecha}
+            </th>
+          </tr>
+        ) : null}
+      </thead>
       <tbody>
-        {filas.map(([k, v]) => (
-          <tr key={k}>
-            <td>{k}</td>
-            <td>
-              <strong>{v}</strong>
-            </td>
+        {filas.map((f) => (
+          <tr key={f.label}>
+            <td className="cp-label">{f.label}</td>
+            <td className={`cp-val ${f.valorClass ?? ""}`.trim()}>{f.value}</td>
           </tr>
         ))}
       </tbody>
@@ -54,142 +119,86 @@ function TablaIndicadores({ filas }: { filas: readonly (readonly [string, string
   );
 }
 
-function OperatividadBlock({
+function CajaObservacion({ titulo, texto }: { titulo: string; texto: string }) {
+  return (
+    <div className="cp-obs-box">
+      <div className="cp-obs-head">{titulo}</div>
+      <div className="cp-obs-body">{texto?.trim() ? texto : "—"}</div>
+    </div>
+  );
+}
+
+function TablaOperatividadExcel({
   titulo,
   filas,
   totales,
-  embedded = false,
 }: {
   titulo: string;
   filas: OperatividadBeneficioRow[];
   totales: OperatividadTotales;
-  embedded?: boolean;
 }) {
-  const body = !filas.length ? (
-    <p className="note-block">Sin datos de personal para esta área. Regístrelos en Asistencia diaria.</p>
-  ) : (
-    <>
-      <div className="cierre-op-scroll">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Criterio</th>
-              <th># Personas</th>
-              <th>% de part.</th>
-              <th>Colaborador</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filas.map((r) => (
-              <tr key={`${r.item}-${r.criterio}`}>
-                <td>{r.item}</td>
-                <td>
-                  {r.estadoCodigo === "INCAPACIDAD" && r.personas > 3 ? (
-                    <Badge tone="danger">{r.criterio}</Badge>
-                  ) : (
-                    r.criterio
-                  )}
-                </td>
-                <td>{r.personas}</td>
-                <td>{pct(r.pct)}</td>
-                <td>{r.colaboradores || "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="cierre-op-foot">
-        <span>Total {totales.totalPersonas}, 100%</span>
-        <span className="ausentismo">Total ausentismo {pct(totales.ausentismoPct)}</span>
-      </div>
-    </>
-  );
-
-  if (embedded) {
+  if (!filas.length) {
     return (
-      <Panel title={titulo} className="cierre-op-panel">
-        {body}
-      </Panel>
+      <div className="cp-op-block">
+        <div className="cp-op-title">{titulo}</div>
+        <p className="cp-op-empty">Sin datos de personal para esta área. Regístrelos en Asistencia diaria.</p>
+      </div>
     );
   }
 
-  return <Panel title={titulo}>{body}</Panel>;
-}
-
-function SeccionCierre({
-  titulo,
-  subtitulo,
-  indicadores,
-  observaciones,
-  operatividadTitulo,
-  operatividadFilas,
-  operatividadTotales,
-  operatividadAlLado = false,
-}: {
-  titulo: string;
-  subtitulo: string;
-  indicadores: readonly (readonly [string, string])[];
-  observaciones?: { fallos?: string; proceso?: string };
-  operatividadTitulo: string;
-  operatividadFilas: OperatividadBeneficioRow[];
-  operatividadTotales: OperatividadTotales;
-  operatividadAlLado?: boolean;
-}) {
-  const tablaOperatividad = (
-    <OperatividadBlock
-      titulo={operatividadTitulo}
-      filas={operatividadFilas}
-      totales={operatividadTotales}
-      embedded={operatividadAlLado}
-    />
-  );
-
   return (
-    <section className="cierre-seccion">
-      <div className="cierre-seccion-head">
-        <h2>{titulo}</h2>
-        <p>{subtitulo}</p>
-      </div>
-
-      {operatividadAlLado ? (
-        <div className="cierre-bloque-grid cierre-bloque-grid--split">
-          <Panel title="Indicadores" className="cierre-ind-panel">
-            <TablaIndicadores filas={indicadores} />
-          </Panel>
-          {tablaOperatividad}
-        </div>
-      ) : (
-        <>
-          <div className="cierre-bloque-grid">
-            <Panel title="Indicadores">
-              <TablaIndicadores filas={indicadores} />
-            </Panel>
-
-            {(observaciones?.fallos || observaciones?.proceso) && (
-              <Panel title="Observaciones">
-                {observaciones.fallos ? (
-                  <p className="note-block">
-                    <strong>Fallos en maquinaria</strong>
-                    <br />
-                    {observaciones.fallos}
-                  </p>
-                ) : null}
-                {observaciones.proceso ? (
-                  <p className="note-block" style={{ marginTop: observaciones.fallos ? "0.75rem" : 0 }}>
-                    <strong>Observaciones de proceso</strong>
-                    <br />
-                    {observaciones.proceso}
-                  </p>
-                ) : null}
-              </Panel>
-            )}
-          </div>
-
-          {tablaOperatividad}
-        </>
-      )}
-    </section>
+    <div className="cp-op-block">
+      <table className="cp-sheet cp-op-sheet">
+        <thead>
+          <tr>
+            <th colSpan={5} className="cp-op-title">
+              {titulo}
+            </th>
+          </tr>
+          <tr className="cp-op-head">
+            <th>Item</th>
+            <th>Criterio</th>
+            <th># Personas</th>
+            <th>% de part.</th>
+            <th>Colaborador</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filas.map((r) => {
+            const incAlta = r.estadoCodigo === "INCAPACIDAD" && r.personas > 3;
+            return (
+              <tr key={`${r.item}-${r.criterio}`}>
+                <td>{r.item}</td>
+                <td className={incAlta ? "cp-inc-label" : undefined}>{r.criterio}</td>
+                <td className={incAlta ? "cp-val-danger" : undefined}>{r.personas}</td>
+                <td>{pct(r.pct)}</td>
+                <td className={incAlta ? "cp-inc-label" : undefined}>{r.colaboradores || "—"}</td>
+              </tr>
+            );
+          })}
+          <tr className="cp-op-foot">
+            <td colSpan={2}>
+              <strong>TOTAL</strong>
+            </td>
+            <td>
+              <strong>{totales.totalPersonas}</strong>
+            </td>
+            <td>
+              <strong>100%</strong>
+            </td>
+            <td />
+          </tr>
+          <tr className="cp-op-foot cp-op-aus">
+            <td colSpan={3}>
+              <strong>TOTAL AUSENTISMO</strong>
+            </td>
+            <td colSpan={2}>
+              <strong>{pct(totales.ausentismoPct)}</strong>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -205,52 +214,48 @@ export function CierreProcesoPage() {
     return <p className="note-block">{error ?? "No hay cierre de proceso para la fecha seleccionada."}</p>;
   }
 
+  const fechaFmt = formatDate(c.fecha);
+
   return (
-    <div>
+    <div className="cp-page">
       <PageHeader
         eyebrow="Cierre de proceso"
         title="Cierre de proceso"
-        description={`Resumen del ${formatDate(c.fecha)} · línea de beneficio y productos cárnicos COM.`}
+        description={`Vista consolidada del ${fechaFmt} · línea de beneficio y productos cárnicos COM.`}
       />
 
-      <div className="metrics-grid">
-        <MetricCard label="Fecha" value={formatDate(c.fecha)} delay={0.05} />
-        <MetricCard
-          label="Total beneficio"
-          value={String(c.totalBeneficio)}
-          hint={`${c.horaInicio} – ${c.horaFin}`}
-          tone="accent"
-          delay={0.1}
-        />
-        <MetricCard
-          label="Velocidad línea beneficio"
-          value={`${c.velocidadNeta.toFixed(1)} r/h`}
-          hint="Velocidad neta"
-          tone="ok"
-          delay={0.15}
-        />
-        <MetricCard label="OEE día" value={pct(c.oeeDia)} delay={0.2} />
+      <div className="cp-dashboard">
+        <aside className="cp-dashboard-left">
+          <TablaIndicadoresExcel
+            titulo="Cierre de proceso · Línea de beneficio"
+            fecha={fechaFmt}
+            filas={indicadoresLinea(c)}
+          />
+          <TablaIndicadoresExcel
+            titulo="Cierre de proceso · Productos cárnicos COM"
+            filas={indicadoresPccom(c.pccom)}
+          />
+        </aside>
+
+        <div className="cp-dashboard-right">
+          <div className="cp-obs-row">
+            <CajaObservacion titulo="Fallos en maquinaria" texto={c.fallosMaquinaria} />
+            <CajaObservacion titulo="Observaciones de proceso" texto={c.observaciones} />
+          </div>
+
+          <TablaOperatividadExcel
+            titulo="Operatividad línea de beneficio"
+            filas={c.laborandoLinea}
+            totales={c.totalesLinea}
+          />
+
+          <TablaOperatividadExcel
+            titulo="Operatividad productos cárnicos comestibles"
+            filas={c.laborandoPccom}
+            totales={c.totalesPccom}
+          />
+        </div>
       </div>
-
-      <SeccionCierre
-        titulo="Cierre de proceso · Línea de beneficio"
-        subtitulo="Indicadores del turno y operatividad de personal de línea"
-        indicadores={indicadoresLinea(c)}
-        observaciones={{ fallos: c.fallosMaquinaria, proceso: c.observaciones }}
-        operatividadTitulo="Operatividad línea beneficio"
-        operatividadFilas={c.laborandoLinea}
-        operatividadTotales={c.totalesLinea}
-      />
-
-      <SeccionCierre
-        titulo="Cierre de proceso · Productos cárnicos COM"
-        subtitulo="Indicadores de vísceras y operatividad de personal PCCOM"
-        indicadores={indicadoresPccom(c.pccom)}
-        operatividadTitulo="Operatividad productos cárnicos comestibles"
-        operatividadFilas={c.laborandoPccom}
-        operatividadTotales={c.totalesPccom}
-        operatividadAlLado
-      />
     </div>
   );
 }
