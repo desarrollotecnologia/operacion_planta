@@ -274,9 +274,9 @@ export function HomePage() {
               <p className="signal-hint">Cierres en base de datos</p>
             </motion.div>
           </div>
-          {c.fallosMaquinaria ? (
+          {c.observaciones?.trim() ? (
             <p className="note-block" style={{ marginTop: "1rem" }}>
-              <strong>Maquinaria:</strong> {c.fallosMaquinaria}
+              <strong>Observaciones:</strong> {c.observaciones}
             </p>
           ) : null}
         </Panel>

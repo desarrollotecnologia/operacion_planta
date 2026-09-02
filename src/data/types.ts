@@ -149,7 +149,6 @@ export type CierreProcesoData = {
   coberturaGrasa: number;
   paradasProgramadasMin: number;
   tiemposImproductivosMin: number;
-  fallosMaquinaria: string;
   observaciones: string;
   operatividadLinea: OperatividadRow[];
   laborandoLinea: OperatividadBeneficioRow[];

@@ -16,6 +16,13 @@ const CIERRE_COLS = `
 
 const toHHMM = (time) => (typeof time === 'string' ? time.slice(0, 5) : time);
 
+/** Observaciones unificadas: detalle, base de datos cierre o fallos legacy. */
+function textoObservaciones(detalle, observacionCierre) {
+  const obs = detalle?.observaciones_proceso?.trim() || observacionCierre?.trim() || '';
+  if (obs) return obs;
+  return detalle?.fallos_maquinaria?.trim() || '';
+}
+
 /** Agrupa estados de asistencia en criterios de operatividad del Excel. */
 const ESTADO_A_OPERATIVIDAD = {
   LABORANDO: 'OPERACION',
@@ -263,8 +270,7 @@ export async function getCierreProceso(fecha) {
     coberturaGrasa: cierre.coberturaGrasa,
     paradasProgramadasMin: cierre.paradaProgramadaMin,
     tiemposImproductivosMin: cierre.tiempoParadasMin,
-    fallosMaquinaria: detalle?.fallos_maquinaria ?? '',
-    observaciones: detalle?.observaciones_proceso ?? cierre.observacion,
+    observaciones: textoObservaciones(detalle, cierre.observacion),
     operatividadLinea,
     laborandoLinea: lineaOp.filas,
     totalesLinea: {

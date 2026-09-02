@@ -42,7 +42,6 @@ export type CierreProcesoData = {
   coberturaGrasa: number;
   paradasProgramadasMin: number;
   tiemposImproductivosMin: number;
-  fallosMaquinaria: string;
   observaciones: string;
   operatividadLinea: OperatividadRow[];
   laborandoLinea: LaborandoRow[];
@@ -83,8 +82,6 @@ export const cierreProcesoMock: CierreProcesoData = {
   coberturaGrasa: 0.0094,
   paradasProgramadasMin: 30,
   tiemposImproductivosMin: 61,
-  fallosMaquinaria:
-    "1- No se cuenta con contingencias habilitadas: desolladora, sierra canal y box de noqueo.",
   observaciones: "Seguimiento a lustres y presentación de canales en clientes prioritarios.",
   operatividadLinea: [
     { criterio: "LIDER/APOYO", real: 1, pct: 0.017, dia: 0, diaPct: 0, dif: -0.017 },

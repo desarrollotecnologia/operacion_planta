@@ -166,14 +166,9 @@ export function CierreProcesoPage() {
         </aside>
 
         <div className="cierre-dashboard-right">
-          <div className="cierre-obs-row">
-            <Panel title="Fallos en maquinaria">
-              <p className="note-block cierre-obs-text">{c.fallosMaquinaria?.trim() || "—"}</p>
-            </Panel>
-            <Panel title="Observaciones de proceso">
-              <p className="note-block cierre-obs-text">{c.observaciones?.trim() || "—"}</p>
-            </Panel>
-          </div>
+          <Panel title="Observaciones de proceso">
+            <p className="note-block cierre-obs-text">{c.observaciones?.trim() || "—"}</p>
+          </Panel>
 
           <OperatividadBlock
             titulo="Operatividad línea beneficio"

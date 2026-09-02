@@ -20,12 +20,6 @@
   min-width: 0;
 }
 
-.cierre-obs-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
 .cierre-obs-text {
   margin: 0;
   white-space: pre-wrap;
@@ -81,10 +75,6 @@
 
 @media (max-width: 1100px) {
   .cierre-dashboard {
-    grid-template-columns: 1fr;
-  }
-
-  .cierre-obs-row {
     grid-template-columns: 1fr;
   }
 }
