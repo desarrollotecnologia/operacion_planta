@@ -60,6 +60,17 @@ export function toHHMM(timeStr: string): string {
   return timeStr.trim().slice(0, 5);
 }
 
+/** Normaliza entrada HH:MM o HH:MM:SS a 24 h. */
+export function normalizeTimeInput(raw: string): string {
+  const t = raw.trim();
+  if (!t) return '';
+  const m = t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (!m) return t;
+  const h = Math.min(23, Math.max(0, Number(m[1])));
+  const min = Math.min(59, Math.max(0, Number(m[2])));
+  return `${pad2(h)}:${pad2(min)}`;
+}
+
 /** "HH:MM:SS" completo para horas de reloj o duraciones. */
 export function toHMS(timeStr: string): string {
   if (!timeStr?.trim()) return '';

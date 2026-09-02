@@ -3,7 +3,7 @@ import { PageHeader } from "../../components/ui";
 import { useCierreStore } from "../../store/CierreStore";
 import { useCierreVistas } from "../../hooks/useCierreVistas";
 import { api, ApiError } from "../../lib/api";
-import { calcBloquesSimulacion, calcResumenSacrificio, calcSimulacion, estadoVelocidadNeta, fmtCeil, fmtPctExcel, fmtResumenTimestamp, SIMULACION_VACIA, toHHMM, toHMS, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
+import { calcBloquesSimulacion, calcResumenSacrificio, calcSimulacion, estadoVelocidadNeta, fmtCeil, fmtPctExcel, fmtResumenTimestamp, normalizeTimeInput, SIMULACION_VACIA, toHHMM, toHMS, VACIADO_LINEA_HR } from "../../lib/simulacionCalc";
 import type { SimulacionInput } from "../../data/types";
 import "../../components/ui.css";
 import "./simulacion.css";
@@ -52,7 +52,7 @@ export function SimulacionPage() {
   }, []);
 
   const setTime = useCallback((key: "horaInicio", value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => ({ ...prev, [key]: normalizeTimeInput(value) }));
     setMensaje(null);
     setErrorGuardado(null);
   }, []);
@@ -233,11 +233,15 @@ export function SimulacionPage() {
                     <th scope="row">HORA DE INICIO</th>
                     <td className="sim-times-editable">
                       <input
-                        className="sim-input sim-input-time sim-input-cell"
-                        type="time"
-                        title="D7 — Hora de inicio"
-                        value={form.horaInicio}
+                        className="sim-input sim-input-time sim-input-cell sim-input-24h"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="HH:MM"
+                        pattern="[0-9]{1,2}:[0-9]{2}"
+                        title="D7 — Hora de inicio (24 h)"
+                        value={toHHMM(form.horaInicio)}
                         onChange={(e) => setTime("horaInicio", e.target.value)}
+                        onBlur={(e) => setTime("horaInicio", e.target.value)}
                       />
                     </td>
                   </tr>

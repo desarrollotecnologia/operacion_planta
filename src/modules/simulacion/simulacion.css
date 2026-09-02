@@ -131,6 +131,11 @@
 
 .sim-input-time {
   min-width: 6rem;
+  letter-spacing: 0.04em;
+}
+
+.sim-input-24h {
+  font-variant-numeric: tabular-nums;
 }
 
 .sim-input:focus {
